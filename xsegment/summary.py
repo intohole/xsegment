@@ -96,7 +96,7 @@ class Summary(object):
     max_sentence_len = 25
 
     def __init__(self):
-        pass
+        raise NotImplementedError , 'no implement this func 【%s】' % sys._getframe().f_code.co_name
 
     def summary(self, content, title, summary_sentences=5, pagraph_split='\r\n'):
         '''
@@ -190,13 +190,13 @@ class Summary(object):
         content : 每个要分词
         返回值：
         '''
-        pass
+        raise NotImplementedError , 'no implement this func 【%s】' % sys._getframe().f_code.co_name
 
     def extractKeyWord(self, sentences, topN=20):
         '''
         抽取关键词接口
         '''
-        pass
+        raise NotImplementedError , 'no implement this func 【%s】' % sys._getframe().f_code.co_name
 
     def score_sentences(self, sentences):
         '''
@@ -209,7 +209,7 @@ class Summary(object):
         '''
         单句打分
         '''
-        pass
+        raise NotImplementedError , 'no implement this func 【%s】' % sys._getframe().f_code.co_name
 
     def sentences_filter(self, sentences, order=None, reverse=False):
         '''
@@ -294,7 +294,7 @@ class SimpleSummary(Summary):
                 sentence1 = [word for word in sentence1.split(split_word)]
                 sentence2 = [word for word in sentence2.split(split_word)]
             elif isinstance(sentence1, (list, tuple)) and isinstance(sentence2, (list, tuple)):
-                pass
+                raise NotImplementedError , 'no implement this func 【%s】' % sys._getframe().f_code.co_name
             else:
                 raise TypeError
 
@@ -303,14 +303,47 @@ class TextRankSummary(Summary):
 
     """docstring for TextRankSummary"""
 
-    def __init__(self):
+    def __init__(self , d = 0.85):
         super(TextRankSummary, self).__init__()
 
-    def summary(self, content, title, summary_sentences=5, pagraph_split='\r\n'):
-        pass
+        self.d = d #阻尼系数
 
-    def __rank_sentence(self):
-        raise NotImplementedError
+
+
+    def summary(self, content, title, summary_sentences=5, pagraph_split='\r\n'):
+        raise NotImplementedError , 'no implement this func 【%s】' % sys._getframe().f_code.co_name
+
+
+
+
+    def __rank(self , sentence_weight_map , sentence_len ):
+        '''
+        功能:
+            param1 
+                sentence_distance_map 句子相似度矩阵
+                sentence_len 句子总数
+            return 
+                sentences_score  句子权重值打分
+        '''
+        sentences_score = [ 1  for i in  len(range(sentence_len))]
+
+        for i in range(len(sentence_len)):
+            pass
+
+        
+
+
+
+        return sentences_score 
+
+
+
+
+
+
+    def get_sentence_distance(self  , sentence_item1 , sentence_item2 ):
+        
+
 
 if __name__ == '__main__':
     # summary = Summary()

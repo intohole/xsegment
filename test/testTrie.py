@@ -9,10 +9,27 @@ class TrieNode(object):
         self.children = {}
 
 
+def save_model(data , model):
+    from cPickle import dump
+    with open(model , 'wb') as f:
+        dump(data , f)
+
+
+
+def load_model( model_path):
+    from cPickle import load
+    with open(model_path , 'rb') as f:
+        return load(f)
+
+
 class Trie(object):
 
-    def __init__(self):
-        self.root = TrieNode()
+
+    def __init__(self , model_path = None):
+        if model_path:
+            self.root = load_model(model_path)
+        else:
+            self.root = TrieNode()
 
     def __eq__(self, word):
         if word and isinstance(word, (str, unicode)):
@@ -59,6 +76,22 @@ class Trie(object):
 
 
 if __name__ == "__main__":
-    t = Trie()
-    t.add("我爱天安门", 1)
-    print t.search("我爱天安门")
+    trie = Trie()
+    trie.add("我爱天安门", 1)
+    print trie.search("我爱天安门")
+    from time import time
+    # print time()
+    with open('dict.txt') as f:
+        for line in f.readlines():
+            line = line.strip().split()
+            trie.add(line[0] , int(line[1]))
+    print time()
+
+    save_model( trie.root ,'d:/tree.bin' )
+    print time()
+    # t = load_model('d:/tree.bin')
+    # x = Trie('d:/tree.bin')
+    # print x.search('嗅觉')
+    # print time()
+
+

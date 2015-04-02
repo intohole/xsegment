@@ -3,6 +3,7 @@
 
 import re
 import sys
+from hmm import HSegment
 reload(sys)
 sys.setdefaultencoding('utf-8')
 

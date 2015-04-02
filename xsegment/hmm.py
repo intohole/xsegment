@@ -10,6 +10,15 @@ sys.setdefaultencoding('utf-8')
 import re
 
 
+from collections import defaultdict
+import sys
+import os
+import json
+reload(sys)
+sys.setdefaultencoding('utf-8')
+import re
+
+
 class HSegment(object):
     __start_state = None
     __emission_probability = None
@@ -17,7 +26,7 @@ class HSegment(object):
     __states = ['s', 'm', 'b', 'e']
     __split = re.compile('\\s+').split
 
-    def __init__(self, model=os.path.join(os.path.abspath(os.path.dirname(__file__)),  'dict/')):
+    def __init__(self, model=os.path.join(os.path.abspath(os.path.dirname(__file__)),  'dict')):
         self.__load(model)
 
     def __load(self, path):
@@ -58,51 +67,30 @@ class HSegment(object):
         return (prob, path[state])
 
     def __segment(self, sentence):
-        if sentence and isinstance(sentence , basestring):
+        if sentence and isinstance(sentence , basestring) and len(sentence.strip()):
             if not isinstance(sentence , unicode):
                 sentence = sentence.decode('utf-8')
-        obstates = self.__viterbi(sentence)[1]
-        word = []
-        for i in range(len(obstates)):
-            if obstates[i] == 's':
-                yield sentence[i]
-            elif obstates[i] == 'b':
-                del word[:]
-                word.append(sentence[i])
-            elif obstates[i] == 'm':
-                word.append(sentence[i])
-            elif obstates[i] == 'e':
-                word.append(sentence[i])
+            obstates = self.__viterbi(sentence)[1]
+            word = []
+            for i in range(len(obstates)):
+                if obstates[i] == 's':
+                    yield sentence[i]
+                elif obstates[i] == 'b':
+                    del word[:]
+                    word.append(sentence[i])
+                elif obstates[i] == 'm':
+                    word.append(sentence[i])
+                elif obstates[i] == 'e':
+                    word.append(sentence[i])
+                    item = ''.join(word)
+                    del word[:]
+                    yield item
+                    
+                else:
+                    raise NameError , '分词状态出现错误 ！ %s' % obstates[i]
+            if len(word):
                 yield ''.join(word)
-                del word[:]
-            else:
-                raise NameError , '分词状态出现错误 ！ %s' % obstates[i]
-        if len(word):
-            yield ''.join(word)
 
-     # def __segment(self, sentence):
-     #    if sentence and not isinstance(sentence, unicode):
-     #        sentence = sentence.decode('utf-8')
-     #    obstates = self.__viterbi(sentence)[1]
-     #    word = []
-     #    __index = 0
-     #    __size = len(obstates)
-     #    while __index < __size:
-     #        if obstates[__index] == 's':
-     #            word.append(sentence[__index])
-     #            __index = __index + 1
-     #        elif obstates[__index] == 'b':
-     #            __word = []
-     #            while __index < __size and obstates[__index] != 'e':
-     #                __word.append(sentence[__index])
-     #                __index = __index + 1
-     #            if __index < __size:
-     #                __word.append(sentence[__index])
-     #                word.append(''.join(__word))
-     #                __index = __index + 1
-     #        else:
-     #            print obstates[__index]
-     #    return word
 
     def segment(self, sentence):
         if not sentence:
@@ -111,6 +99,7 @@ class HSegment(object):
         for sen in self.__split(sentence.strip()):
             words.extend(self.__segment(sen))
         return words
+
 
 
 class trainHmm(object):
