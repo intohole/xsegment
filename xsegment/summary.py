@@ -300,6 +300,132 @@ class SimpleSummary(Summary):
 
 
 
+class WeightArray(object):
+
+    def __init__(self, sentences , distance_fun):
+        self.sentences = sentences 
+        self.distance_map = self.create_distance_map(sentences, distance_fun)
+        self.data_len = len(sentences)
+
+
+
+
+    def __getitem__(self, label_tuple):
+        row , line = label_tuple        
+        return self.get_distance_by_index(row , line)
+
+
+
+    def get_distance_by_index(self  , row , line ):
+        '''
+        function:
+            下半角矩阵 ， 转换坐标
+
+        '''
+        if line > row :
+            tmp = row 
+            row = line 
+            line = tmp  
+        return self.distance_map[row][line]
+
+
+
+    def create_distance_map(self, sentences, distance_fun):
+        '''
+        function:
+            创建数据距离map
+        params:
+            sentences 数据，格式 [[label1 , x1 ,x2...,xN ] , [lable2 , x1 , x2 , ..., xN]....[labelN , x1, x2 , ...xN] ]
+        return 
+            sentences_map 
+        '''
+        distance_map = []
+        for i in range(len(sentences)):
+            tmp_distance = []
+            for j in range(i + 1):
+                if i == j:
+                    tmp_distance.append(0)
+                else:
+                    tmp_distance.append(distance_fun(sentences[i], sentences[j]))
+            distance_map.append(tmp_distance)
+        return distance_map
+
+import math 
+from collections import Counter
+
+class TextRankSummary(Summary):
+
+    """docstring for TextRankSummary"""
+
+    def __init__(self , d = 0.85 , threshold = 0.05 ,iter_count = 100 ):
+        super(TextRankSummary, self).__init__()
+
+        self.d = d #阻尼系数
+        self.iter_count = iter_count #迭代次数
+        self.threshold = threshold #阈值 ， 设置此值后 ， 在计算rank的时候，如果小于这个数值时，跳出迭代
+
+
+
+
+
+
+
+    def summary(self, content, title, summary_sentences=5, pagraph_split='\r\n'):
+        sentences = self.split_sentence(content ,split = pagraph_split )
+        self.segment(sentences)
+        sentence_weight_map = WeightArray(sentences , self.distance)
+        sentence_score_order = self.rank(self.iter_count , 0.01 , sentence_weight_map , len(sentences) , self.d )
+        summary_len = self.get_summary_len(len(sentences) ,  summary_sentences)
+        return '\n'.join([sentences[sentence_score_order[i][1]].oristring for i in range(summary_len)])
+
+    def rank(self , iter_count  , threshold ,sentence_weight_map , sentence_len , d = 0.8  ):
+        '''
+        功能:
+            param1 
+                sentence_distance_map 句子相似度矩阵
+                sentence_len 句子总数
+            return 
+                sentences_score  句子权重值打分
+        '''
+        #初始化句子权重 ，暂时定位1 
+        sentences_score = [ 1 - d   for i in  range(sentence_len)]
+        sentence_out_sum = [] # 每个句子出链的权重比值
+        for i in range(sentence_len):
+            sentence_out_sum.append( sum(sentence_weight_map[(i , j)] for j in range(sentence_len)))
+
+        #weight_sum 
+        for _ in range(iter_count):
+            tmp_score = copy(sentences_score)
+            max_diff = None 
+            for i in range(sentence_len):
+                #所有句子都是入链
+                for j in range(sentence_len):
+                    if i == j:
+                        continue
+                    tmp_score[i] +=  d * sentence_weight_map[(i , j )] / sentence_out_sum[j] * sentences_score[j] 
+                diff = abs( tmp_score[i] - sentences_score[i] )
+                if max_diff == None or diff > max_diff:
+                    max_diff = diff 
+            sentences_score = tmp_score
+            if max_diff  < threshold:
+                break 
+        return sorted([(sentences_score[i] , i )  for i in range(sentence_len) ] , key =lambda x :  float(x[0]) ,reverse = False) 
+
+    def segment(self, sentences):
+        for sentence in sentences:
+            sentence.words = [ sentence.oristring[i : i + 2] for i in range( len(sentence.oristring) - 2)]
+            sentence.words_len = len(sentence.words)
+
+
+    def distance(self , sentence1 , sentence2 ):
+        vector1 = Counter(sentence1.words)
+        vector2 = Counter(sentence2.words)
+        words_bag = set(vector2.keys()) & set(vector2.keys())
+        up = sum([vector1[x] * vector2[x] for x in words_bag])
+        down  = math.sqrt(sum([ vector1[word] ** 2 for word in vector1.keys()] ) ) * \
+            math.sqrt(sum([vector2[word] ** 2 for word in vector2.keys()]))
+        return float(up) / down 
+
 
 if __name__ == '__main__':
     # summary = Summary()

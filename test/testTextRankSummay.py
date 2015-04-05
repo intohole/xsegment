@@ -98,7 +98,8 @@ class Summary(object):
     max_sentence_len = 25
 
     def __init__(self):
-        raise NotImplementedError , 'no implement this func 【%s】' % sys._getframe().f_code.co_name
+        pass 
+        # raise NotImplementedError , 'no implement this func 【%s】' % sys._getframe().f_code.co_name
 
     def summary(self, content, title, summary_sentences=5, pagraph_split='\r\n'):
         '''
@@ -228,21 +229,17 @@ class Summary(object):
 
 class WeightArray(object):
 
-    def __init__(self, datas, distance_fun):
-        self.lable_dict = {datas[index][0]:index   for index in range(len(datas))}
-        self.distance_map = self.create_distance_map(datas, distance_fun)
-        self.data_len = len(datas)
+    def __init__(self, sentences , distance_fun):
+        self.sentences = sentences 
+        self.distance_map = self.create_distance_map(sentences, distance_fun)
+        self.data_len = len(sentences)
 
 
 
 
     def __getitem__(self, label_tuple):
-        label1, label2 = label_tuple
-        if self.lable_dict.has_key(label1) and self.lable_dict.has_key(label2):
-            index1 = self.lable_dict[label1]
-            index2 = self.lable_dict[label2]
-            return self.get_distance_by_index(index1 , index2)
-        raise IndexError, 'index : %s , index2 : %s  not in this distance_map'
+        row , line = label_tuple        
+        return self.get_distance_by_index(row , line)
 
 
 
@@ -260,28 +257,28 @@ class WeightArray(object):
 
 
 
-    def create_distance_map(self, datas, distance_fun):
+    def create_distance_map(self, sentences, distance_fun):
         '''
         function:
             创建数据距离map
         params:
-            datas 数据，格式 [[label1 , x1 ,x2...,xN ] , [lable2 , x1 , x2 , ..., xN]....[labelN , x1, x2 , ...xN] ]
+            sentences 数据，格式 [[label1 , x1 ,x2...,xN ] , [lable2 , x1 , x2 , ..., xN]....[labelN , x1, x2 , ...xN] ]
         return 
-            datas_map 
+            sentences_map 
         '''
         distance_map = []
-        for i in range(len(datas)):
+        for i in range(len(sentences)):
             tmp_distance = []
             for j in range(i + 1):
                 if i == j:
                     tmp_distance.append(0)
                 else:
-                    tmp_distance.append(distance_fun(datas[i], datas[j]))
+                    tmp_distance.append(distance_fun(sentences[i], sentences[j]))
             distance_map.append(tmp_distance)
         return distance_map
 
-
-
+import math 
+from collections import Counter
 
 class TextRankSummary(Summary):
 
@@ -301,10 +298,12 @@ class TextRankSummary(Summary):
 
 
     def summary(self, content, title, summary_sentences=5, pagraph_split='\r\n'):
-        raise NotImplementedError , 'no implement this func 【%s】' % sys._getframe().f_code.co_name
-
-
-
+        sentences = self.split_sentence(content ,split = pagraph_split )
+        self.segment(sentences)
+        sentence_weight_map = WeightArray(sentences , self.distance)
+        sentence_score_order = self.rank(self.iter_count , 0.01 , sentence_weight_map , len(sentences) , self.d )
+        summary_len = self.get_summary_len(len(sentences) ,  summary_sentences)
+        return '\n'.join([sentences[sentence_score_order[i][1]].oristring for i in range(summary_len)])
 
     def rank(self , iter_count  , threshold ,sentence_weight_map , sentence_len , d = 0.8  ):
         '''
@@ -316,12 +315,11 @@ class TextRankSummary(Summary):
                 sentences_score  句子权重值打分
         '''
         #初始化句子权重 ，暂时定位1 
-        sentences_score = [ 1 - d   for i in  len(range(sentence_len))]
+        sentences_score = [ 1 - d   for i in  range(sentence_len)]
         sentence_out_sum = [] # 每个句子出链的权重比值
         for i in range(sentence_len):
-            sentence_out_sum[i] = sum(sentence_weight_map[(i , j )] for j in range(sentence_len))
+            sentence_out_sum.append( sum(sentence_weight_map[(i , j)] for j in range(sentence_len)))
 
-        
         #weight_sum 
         for _ in range(iter_count):
             tmp_score = copy(sentences_score)
@@ -332,19 +330,30 @@ class TextRankSummary(Summary):
                     if i == j:
                         continue
                     tmp_score[i] +=  d * sentence_weight_map[(i , j )] / sentence_out_sum[j] * sentences_score[j] 
-                diff = math.abs( tmp_score[i] - sentences_score[i] )
+                diff = abs( tmp_score[i] - sentences_score[i] )
                 if max_diff == None or diff > max_diff:
                     max_diff = diff 
             sentences_score = tmp_score
             if max_diff  < threshold:
                 break 
-
-        return sorted([(sentences_score , i )  for i in range(sentence_len) ] , key =lambda x : x[0] , reversed = True) 
+        return sorted([(sentences_score[i] , i )  for i in range(sentence_len) ] , key =lambda x :  float(x[0]) ,reverse = False) 
 
     def segment(self, sentences):
         for sentence in sentences:
-            sentence.words = [ sentence.oristring[i : i + 2] for i in range( len(self.__segment.segment(sentence.oristring) - 2)]
-            sentence.words_len
+            sentence.words = [ sentence.oristring[i : i + 2] for i in range( len(sentence.oristring) - 2)]
+            sentence.words_len = len(sentence.words)
+
+
+    def distance(self , sentence1 , sentence2 ):
+        vector1 = Counter(sentence1.words)
+        vector2 = Counter(sentence2.words)
+        words_bag = set(vector2.keys()) & set(vector2.keys())
+        up = sum([vector1[x] * vector2[x] for x in words_bag])
+        down  = math.sqrt(sum([ vector1[word] ** 2 for word in vector1.keys()] ) ) * \
+            math.sqrt(sum([vector2[word] ** 2 for word in vector2.keys()]))
+        return float(up) / down 
+
+
 
 
 
@@ -359,15 +368,10 @@ class TextRankSummary(Summary):
 
 
 if __name__ == '__main__':
-    # summary = Summary()
-    # print summary.get_summary_len(20 , 0.5)
-    s = SimpleSummary()
-    x = None
+    t = TextRankSummary()
     with open('d:/feiji') as f:
         x = ''.join([line for line in f.readlines() if line.strip() != ''])
-    with open('d:/summary.txt' , 'w') as f:
-        for i in s.summary(x, '康佳携手万合天宜启动新生代历练计划', summary_sentences=0.08)[1]:
-            f.write(i.oristring + "\n")
+    print t.summary(x , '康佳携手万合天宜启动新生代历练计划')
 
 
 
