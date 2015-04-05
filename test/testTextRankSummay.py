@@ -1,12 +1,14 @@
 # coding=utf-8
-#!/usr/bin/env python
 
+
+
+from copy import copy
 import sys
-from ZooSegment import FMM
-from tag import HSpeech
-from textrank import TextRank1
 reload(sys)
 sys.setdefaultencoding('utf-8')
+
+
+
 
 '''
 自动摘要 编写
@@ -59,10 +61,10 @@ class Sentence(object):
     keywords 关键词数目
     score 关键句打分
     words 分词
-    wordLen 句子含有的词数目　
+    words_len 句子含有的词数目　
     '''
 
-    def __init__(self, oristring, index, loc, words=None, items=None, keywords=None, wordLen=0, score=0.):
+    def __init__(self, oristring, index, loc, words=None, items=None, keywords=None, words_len=0, score=0.):
         self.index = index
         self.items = items
         self.score = score
@@ -70,7 +72,7 @@ class Sentence(object):
         self.oristring = oristring
         self.loc = loc
         self.words = words
-        self.wordLen = wordLen
+        self.words_len = words_len
 
     def __str__(self):
         # 返回字符串功能　str()
@@ -223,80 +225,135 @@ class Summary(object):
         raise TypeError, 'sentences must be list and item is sententce'
 
 
-class SimpleSummary(Summary):
 
-    '''
-    默认自动摘要实现
-    分词接口　: FMM  xsegment 或者含有接口为　segment　分词实现类别　　返回值为ｌｉｓｔ　或者　ｔｕｐｌｅ
-    ｔａｇ　：　名词词性分析 现在直接调用　本人编写的词性标注类实现
-    '''
+class WeightArray(object):
 
-    def __init__(self, segment=None, tag=None):
-        if segment:
-            self.__segment = segment
-        else:
-            self.__segment = FMM()
-        if tag:
-            self.__tag = tag
-        else:
-            self.__tag = HSpeech()
+    def __init__(self, datas, distance_fun):
+        self.lable_dict = {datas[index][0]:index   for index in range(len(datas))}
+        self.distance_map = self.create_distance_map(datas, distance_fun)
+        self.data_len = len(datas)
+
+
+
+
+    def __getitem__(self, label_tuple):
+        label1, label2 = label_tuple
+        if self.lable_dict.has_key(label1) and self.lable_dict.has_key(label2):
+            index1 = self.lable_dict[label1]
+            index2 = self.lable_dict[label2]
+            return self.get_distance_by_index(index1 , index2)
+        raise IndexError, 'index : %s , index2 : %s  not in this distance_map'
+
+
+
+    def get_distance_by_index(self  , row , line ):
+        '''
+        function:
+            下半角矩阵 ， 转换坐标
+
+        '''
+        if line > row :
+            tmp = row 
+            row = line 
+            line = tmp  
+        return self.distance_map[row][line]
+
+
+
+    def create_distance_map(self, datas, distance_fun):
+        '''
+        function:
+            创建数据距离map
+        params:
+            datas 数据，格式 [[label1 , x1 ,x2...,xN ] , [lable2 , x1 , x2 , ..., xN]....[labelN , x1, x2 , ...xN] ]
+        return 
+            datas_map 
+        '''
+        distance_map = []
+        for i in range(len(datas)):
+            tmp_distance = []
+            for j in range(i + 1):
+                if i == j:
+                    tmp_distance.append(0)
+                else:
+                    tmp_distance.append(distance_fun(datas[i], datas[j]))
+            distance_map.append(tmp_distance)
+        return distance_map
+
+
+
+
+class TextRankSummary(Summary):
+
+    """docstring for TextRankSummary"""
+
+    def __init__(self , d = 0.85 , threshold = 0.05 ,iter_count = 100 ):
+        super(TextRankSummary, self).__init__()
+
+        self.d = d #阻尼系数
+        self.iter_count = iter_count #迭代次数
+        self.threshold = threshold #阈值 ， 设置此值后 ， 在计算rank的时候，如果小于这个数值时，跳出迭代
+
+
+
+
+
+
+
+    def summary(self, content, title, summary_sentences=5, pagraph_split='\r\n'):
+        raise NotImplementedError , 'no implement this func 【%s】' % sys._getframe().f_code.co_name
+
+
+
+
+    def rank(self , iter_count  , threshold ,sentence_weight_map , sentence_len , d = 0.8  ):
+        '''
+        功能:
+            param1 
+                sentence_distance_map 句子相似度矩阵
+                sentence_len 句子总数
+            return 
+                sentences_score  句子权重值打分
+        '''
+        #初始化句子权重 ，暂时定位1 
+        sentences_score = [ 1 - d   for i in  len(range(sentence_len))]
+        sentence_out_sum = [] # 每个句子出链的权重比值
+        for i in range(sentence_len):
+            sentence_out_sum[i] = sum(sentence_weight_map[(i , j )] for j in range(sentence_len))
+
+        
+        #weight_sum 
+        for _ in range(iter_count):
+            tmp_score = copy(sentences_score)
+            max_diff = None 
+            for i in range(sentence_len):
+                #所有句子都是入链
+                for j in range(sentence_len):
+                    if i == j:
+                        continue
+                    tmp_score[i] +=  d * sentence_weight_map[(i , j )] / sentence_out_sum[j] * sentences_score[j] 
+                diff = math.abs( tmp_score[i] - sentences_score[i] )
+                if max_diff == None or diff > max_diff:
+                    max_diff = diff 
+            sentences_score = tmp_score
+            if max_diff  < threshold:
+                break 
+
+        return sorted([(sentences_score , i )  for i in range(sentence_len) ] , key =lambda x : x[0] , reversed = True) 
 
     def segment(self, sentences):
-        for i in range(len(sentences)):
-            sentences[i].words = self.__segment.segment(sentences[i].oristring)
-            sentences[i].wordLen = len(sentences[i].words)
-            items = []
-            tags = self.__tag.tag(sentences[i].words)
-            if tags:
-                sentences[i].items = [WordItem(__word[0], __word[1])
-                                      for __word in tags]
-            else:
-                sentences[i].items = []
+        for sentence in sentences:
+            sentence.words = [ sentence.oristring[i : i + 2] for i in range( len(self.__segment.segment(sentence.oristring) - 2)]
+            sentence.words_len
 
-    def extractKeyWord(self, sentences, topN=20):
-        words = []
-        for i in range(len(sentences)):
-            words.extend(
-                [item.word for item in sentences[i].items
-                 if len(item.tag) > 0
-                 and item.tag[0] in ['n', 'r', 'v']
-                 and len(item.word) > 1 and i > 0]
-            )
-        keywords = TextRank1.extract_key_word(words, 3, topN)
-        keywords.extend(
-            [item.word for item in sentences[1].items if len(item.tag) > 0 and item.tag[0] in ['n', 'r', 'v']])
-        for i in range(len(sentences)):
-            keyWordsLen = 0
-            for j in range(len(sentences[i].items)):
-                if sentences[i].items[j].word in keywords:
-                    sentences[i].items[j].isKeyWord = True
-                    keyWordsLen = keyWordsLen + 1
-            sentences[i].keywords = keyWordsLen
 
-    def score(self, sentence):
-        if sentence.wordLen <= 0:
-            return -30
-        __score = 0.
-        if sentence.loc == ITEM_LOCATION.BEGIN:
-            __score += 10
-        if sentence.loc == ITEM_LOCATION.END:
-            __score += 6
-        __score = sentence.keywords * 80.0 / sentence.wordLen
-        if sentence.oristring.strip()[-1] in ['?', '!', '？', '!']:
-            __score -= 100
-        if len(sentence.oristring.strip()) < 5:
-            __score -= 10
-        return __score
 
-    def __cos(self, sentence1, sentence2, split_word=' '):
-        if sentence1 and sentence2:
-            if isinstance(sentence1, (str, unicode)) and isinstance(sentence2, (str, unicode)):
-                sentence1 = [word for word in sentence1.split(split_word)]
-                sentence2 = [word for word in sentence2.split(split_word)]
-            elif isinstance(sentence1, (list, tuple)) and isinstance(sentence2, (list, tuple)):
-                raise NotImplementedError , 'no implement this func 【%s】' % sys._getframe().f_code.co_name
-            else:
-                raise TypeError
+
+
+    def get_sentence_distance(self  , sentence_item1 , sentence_item2 ):
+        raise NotImplementedError
+        
+
 
 
 
@@ -311,3 +368,6 @@ if __name__ == '__main__':
     with open('d:/summary.txt' , 'w') as f:
         for i in s.summary(x, '康佳携手万合天宜启动新生代历练计划', summary_sentences=0.08)[1]:
             f.write(i.oristring + "\n")
+
+
+
