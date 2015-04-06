@@ -303,7 +303,9 @@ class TextRankSummary(Summary):
         sentence_weight_map = WeightArray(sentences , self.distance)
         sentence_score_order = self.rank(self.iter_count , 0.01 , sentence_weight_map , len(sentences) , self.d )
         summary_len = self.get_summary_len(len(sentences) ,  summary_sentences)
-        return '\n'.join([sentences[sentence_score_order[i][1]].oristring for i in range(summary_len)])
+        sentences = [sentences[sentence_score_order[i][1]] for i in range(summary_len)] 
+        sorted(sentences , key = lambda x : x.index , reverse= False  )
+        return '\n'.join([sentence.oristring for sentence in sentences ] )
 
     def rank(self , iter_count  , threshold ,sentence_weight_map , sentence_len , d = 0.8  ):
         '''
@@ -359,8 +361,6 @@ class TextRankSummary(Summary):
 
 
 
-    def get_sentence_distance(self  , sentence_item1 , sentence_item2 ):
-        raise NotImplementedError
         
 
 
