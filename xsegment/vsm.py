@@ -90,4 +90,4 @@ if __name__ == '__main__':
     v.add_doc('b', 'a b c d c a')
     v.add_doc('c', 'c d f e r a c')
     # print v.totfidf()
-    print v.similarty('a', 'c')
+    print v.similarty('a', 'b')
