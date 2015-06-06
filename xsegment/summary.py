@@ -428,8 +428,7 @@ class TextRankSummary(Summary):
 
 
 if __name__ == '__main__':
-    # summary = Summary()
-    # print summary.get_summary_len(20 , 0.5)
+
     s = SimpleSummary()
     x = None
     with open('d:/feiji') as f:

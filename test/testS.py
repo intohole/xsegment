@@ -302,6 +302,7 @@ class TextRankSummary(Summary):
         self.segment(sentences)
         sentence_weight_map = WeightArray(sentences , self.distance)
         sentence_score_order = self.rank(self.iter_count , 0.01 , sentence_weight_map , len(sentences) , self.d )
+        print sentence_score_order
         summary_len = self.get_summary_len(len(sentences) ,  summary_sentences)
         sentences = [sentences[sentence_score_order[i][1]] for i in range(summary_len)] 
         sorted(sentences , key = lambda x : x.index , reverse= False  )

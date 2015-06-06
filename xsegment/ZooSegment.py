@@ -18,16 +18,18 @@ class SMM(Segment):
 
     word_dict = Trie()  # 词典树
 
-    def __init__(self, dictpath=os.path.join(os.path.abspath(os.path.dirname(__file__)),  'dict/dict.txt'), maxlength=8):
+    def __init__(self, dictpath=os.path.join(os.path.abspath(os.path.dirname(__file__)),  'dict/dict.txt'), maxlength=5):
         self.word_dictpath = dictpath
         self.maxlength = maxlength
-        self.__load_word_dict()
+        self.load_word_dict(self.word_dictpath)
 
-    def __load_word_dict(self):
-        contents = filetutil.read_file_strip(self.word_dictpath)
-        for word in contents:
-            wordarry = word.split()
-            self.word_dict.add(wordarry[0].decode('utf-8'), wordarry[1])
+    def load_word_dict(self , dictpath):
+
+        with open(dictpath) as f:
+            for line in f:
+                wordArray = line.rstrip().split()
+                if len(wordArray) >= 2:
+                    self.word_dict.add(wordarry[0].decode('utf-8'), wordarry[1])                    
 
     def signal_word_in(self, words):
         count = 0
@@ -192,6 +194,10 @@ class MMSegment(Segment):
                     del unknow[:]
                 return items 
         return []
+
+
+
+
 
 
 if __name__ == "__main__":
