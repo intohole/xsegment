@@ -27,9 +27,9 @@ class SMM(Segment):
 
         with open(dictpath) as f:
             for line in f:
-                wordArray = line.rstrip().split()
-                if len(wordArray) >= 2:
-                    self.word_dict.add(wordarry[0].decode('utf-8'), wordarry[1])                    
+                word_array = line.rstrip().split()
+                if len(word_array) >= 2:
+                    self.word_dict.add(word_array[0].decode('utf-8'), word_array[1])                    
 
     def signal_word_in(self, words):
         count = 0
