@@ -4,3 +4,4 @@ build/
 test/*.bin
 test/*.dat
 test/*.txt
+dist/
