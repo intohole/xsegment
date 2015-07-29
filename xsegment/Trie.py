@@ -70,8 +70,3 @@ class Trie(object):
             if default:
                 return default
             return words
-
-if __name__ == "__main__":
-    t = Trie()
-    t.add("我爱天安门", 1)
-    print t.find("我爱天安门")

@@ -29,7 +29,7 @@ WORD_EXTRACT = re.compile(WORD_EXTRACT_REGX, re.U|re.IGNORECASE).finditer
 
 
 def getWordSign(d):
-    if isinstance(d, dict):
+    if d and isinstance(d, dict):
         for _key, _val in d.items():
             if _val != None:
                 return (_val, _key)
