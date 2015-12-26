@@ -64,12 +64,12 @@ class SimHash(object):
             hash_count_dict = Counter([self.hash(word) for word in words])
             hash_array = self.create_array()
             for hash_num, weight in hash_count_dict.items():  # 循环数组　权重
-                self.hash_array_add(
+                self._hash_array_add(
                     hash_array, self.get_array_by_weight(hash_num, weight))
-            return self.array_to_int(hash_array)  # 转换为数字
+            return self._array_to_int(hash_array)  # 转换为数字
         raise ValueError, "document is string !"
 
-    def array_to_int(self, hash_array):
+    def _array_to_int(self, hash_array):
         """将hash数组转换成为整型
             主要思想为hash_array大于0该位为1，否则为0
             params:
