@@ -9,10 +9,12 @@ zoo-segment 中文分词python分词
 *正则预分词  
 :::python
 
-       from xsegment.ZooSegment import * 
-       from xsegment.hmm import HSegment 
-       seg = FMM()  #seg = RMM() or seg = HSegment() #hmm 分词
-       print " ".join(seg.segment(  "如果不肯换位体验，能不能让他们失去位子？！否则他们永远不会懂得权力来自人民。 //@人 民日报:【想听真话摸实情，不如换位体验】网友建议：请民航部门领导以普通乘客身份  ，体验飞机晚点的烦恼…...感同身受，换位思考，还有哪些地方需要领导去体验？欢迎补充〜")  )  #如果 不肯 换位 体验 ， 能不能 让 他们 失去 位子 ？！ 否则 他们 永远 不会 懂得 权力 来自 人民 。 //@人民日报 :【 想 听 真话 摸 实情 ， 不如 换位 体验 】 网友 建议 ： 请 民航 部门 领导 以 普通 乘客 身份 ， 体验 飞机 晚点 的 烦恼 …... 感同身受 ， 换位 思考 ， 还有 哪些地方 需要 领导 去 体验 ？ 欢迎 补充 〜
+       	from xsegment.ZooSegment import * 
+       	from xsegment.hmm import HSegment 
+       	seg = FMM() #前向最大匹配分词 
+	   	seg = RMM() #后向最大匹配分词
+		seg = MMSegment() #hmm识别未识别词匹配
+       	print " ".join(seg.segment(  "如果不肯换位体验，能不能让他们失去位子？！否则他们永远不会懂得权力来自人民。 //@人 民日报:【想听真话摸实情，不如换位体验】网友建议：请民航部门领导以普通乘客身份  ，体验飞机晚点的烦恼…...感同身受，换位思考，还有哪些地方需要领导去体验？欢迎补充〜")  )  #如果 不肯 换位 体验 ， 能不能 让 他们 失去 位子 ？！ 否则 他们 永远 不会 懂得 权力 来自 人民 。 //@人民日报 :【 想 听 真话 摸 实情 ， 不如 换位 体验 】 网友 建议 ： 请 民航 部门 领导 以 普通 乘客 身份 ， 体验 飞机 晚点 的 烦恼 …... 感同身受 ， 换位 思考 ， 还有 哪些地方 需要 领导 去 体验 ？ 欢迎 补充 〜
 
 
 
@@ -42,9 +44,6 @@ zoo-segment 中文分词python分词
      print sentiment.get_sentence_sentiment(['我' , '喜欢' , '你']) # 返回2.48107221007 情感为积极
      print sentiment.get_sentence_sentiment(['我' , '恨' , '你']) #-0.4392 情感为消极
 
-+ 计算情感词的极值 ， 现在简单的实现
-+ 必须要加入否定词概念 
-+ 情感极性 ， 推荐svm训练
 
 词性标注
 ----------------------
@@ -62,10 +61,72 @@ zoo-segment 中文分词python分词
 
 :::python
       
-      from xsegment.textrank import 
+      from xsegment.textrank import TextRank1
       k = TextRank1.create_word_window(分词结果, 7 , weight = True)
       scoremap = TextRank1.textrank(k , iter_count = 100)
       for i in TextRank1.sort_score(scoremap , 12):
           print i[0], i[1]
-      
 
+词语义距离
+--------------
++ 基于哈工大开源词林词典实现（词典已经很久没更新，使用word2vec会更加好一点？）
+
+
+:::python
+
+	from xsegment.wordsim import WordSim
+	wordsim = WordSim()
+	wordsim.word_sim("你" , "我" ， desc = True) #返回词之间距离数组 ， 按照降序排列 ， 升序 desc = False
+
+自动摘要
+-------------
++ 基于自然语言摘要
++ 基于textrank自动摘要
+
+:::python
+
+	from xsegment.summary import SimpleSummary
+	from xsegment.summary import TextRankSummary
+	summary = SimpleSummary() #TextRankSummary()
+	summary.summary("文章内容" , "标题" ) #返回摘要
+
+Simhash文本相似计算
+------------
+
+:::python
+
+			>>> from xsegment.simhash import SimHash
+	        >>> def segfun(words):
+            ...     return [ words[i:i+2] for i in range(len(words) - 1)]
+            >>> s = SimHash( segfun = segfun)
+            >>> s.figureprint("abc") == s.figureprint("abc")
+            >>> s.figureprint("abc") == s.figureprint("abcd")
+            >>> s.distance(s.figureprint("abc") , s.figureprint("abcde"))
+
+文档相似度计算
+----------------
++ 余弦算法
+
+
+::::python
+		
+		from xsegment.similar import consine
+		consine("我 的 中国 是 伟大 的" , "我 爱 我 的 祖国" , split_fun = lambda x: x.split())
+
+多文档相似度
+------------
+
+
+:::python
+	
+		from xsegment.vsm import Vector
+		v = Vector()
+    	v.add_doc('a', 'a b c d c a')
+    	v.add_doc('b', 'a b c d c a')
+    	v.add_doc('c', 'c d f e r a c')
+    	# print v.totfidf()
+    	print v.similarty('a', 'b')
+
+
+  	
+      
