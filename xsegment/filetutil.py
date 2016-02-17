@@ -85,6 +85,3 @@ def read_file_line_format(filepath, formatfunction):
         _newcontents.append(formatfunction(content))
     return _newcontents
 
-
-if __name__ == "__main__":
-    pass
