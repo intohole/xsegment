@@ -128,5 +128,10 @@ Simhash文本相似计算
     	print v.similarty('a', 'b')
 
 
-  	
-      
+挖掘新词  	
+--------------      
+
+
+:::python
+
+    python xsegment/word_rec.py -i [文件/路径] 
