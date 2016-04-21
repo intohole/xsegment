@@ -2,58 +2,13 @@
 
 
 import os
-from testTrie import Trie
-from testHmm import HSegment
-
-
-class MMSegment(object):
-
-
-
-    def __init__(self , dictpath=  'dict.txt' , maxlength=5 ):
-        self.__trie = Trie()
-        self.__load_dict(dictpath , self.__trie)
-        self.maxlength = maxlength
-        self.hmm = HSegment()
-
-    def __load_dict(self , dictpath , trie):
-        with open(dictpath) as f:
-            for line in f.readlines():
-                line = line.strip().split()
-                trie.add(line[0] , int(line[1]))
-
-
-    def segment(self , words):
-        if words and isinstance(words , basestring) and len(words) > 0 :
-            if not isinstance(words , unicode):
-                words = words.decode('utf-8')
-                lindex = 0
-                rindex = min(len(words) , self.maxlength)
-                items = []
-                unknow = []
-                while lindex < len(words):
-                    if self.__trie.search(words[lindex : rindex]):
-                        if len(unknow):
-                            items.extend(self.hmm.segment(''.join(unknow)))
-                            del unknow[:]
-                        items.append(words[lindex : rindex])
-                        lindex = rindex 
-                        rindex = min(len(words) , self.maxlength + lindex)
-                        continue
-                    rindex -= 1
-                    if rindex == lindex:
-                        unknow.append(words[lindex])
-                        lindex += 1
-                        rindex = min(len(words) , self.maxlength + lindex)
-                if len(unknow):
-                    items.extend(self.hmm.segment(''.join(unknow)))
-                    del unknow[:]
-                return items 
-        return []
+from xsegment import ZooSegment
+from b2 import system2 
 
 
 if __name__ == '__main__':
-    m = MMSegment()
+    system2.reload_utf8()
+    m = ZooSegment.MMSegment()
     print ' '.join(m.hmm.segment('在2015年开端，作为程序员来说！努力是个球！,世界杯 开赛！梅西很犀利!,世界卫生组织宣布！我了个去!梅花盛开在三月!腊月是个神奇的日子！'))
     print ' '.join(m.segment('南京市长江大桥今天竣工！'))
     print ' '.join(m.segment('理想很远大，现实很骨干'))

@@ -6,3 +6,5 @@ test/*.dat
 test/*.txt
 dist/
 *_bak
+*.swp
+dist/

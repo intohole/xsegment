@@ -15,7 +15,7 @@ class Trie(object):
         self.root = TrieNode()
 
     def __eq__(self, word):
-        if word and isinstance(word, (str, unicode)):
+        if word and isinstance(word, basestring):
             return self.search(word)
         return False
 
@@ -26,13 +26,13 @@ class Trie(object):
         return self.search(key)
 
     def add(self, words, value):
-        if not (words and isinstance(words, (str, unicode)) and value and isinstance(value, (int, float, long, str))):
-            return
+        if words is None or isinstance(words , basestring) is False:
+            return None 
+        if value is None or isinstance(value , (int, float, long)) is False:
+            return None 
         node = self.root
-        if not words:
-            return
         for word in words:
-            if node.children.has_key(word):
+            if word in node.children:
                 node = node.children[word]
             else:
                 t = TrieNode()
