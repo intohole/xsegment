@@ -5,29 +5,19 @@ import sys
 from ZooSegment import FMM
 from tag import HSpeech
 from textrank import TextRank1
-reload(sys)
-sys.setdefaultencoding('utf-8')
+from b2 import system2
+from b2 import object2
+system2.reload_utf8()
+"""自动摘要编写
+    1. 基于权重式自动摘要实现； 基于句子权重，排序实现；
+    2. 基于textrank摘要算法实现
+"""
 
-'''
-自动摘要 编写
-'''
 
 
-def enum(args, start=0):
-    '''
-    enum 枚举实现　－　＞　使用方式　　enmu('ENUM1 ... Enum2 .. EnumN')
 
-    '''
-    class Enum(object):
-        __slots__ = args.split()
 
-        def __init__(self):
-            for i, key in enumerate(Enum.__slots__, start):
-                setattr(self, key, i)
-
-    return Enum()
-
-ITEM_LOCATION = enum('BEGIN MEDIM END NONE')  # 位置变量
+ITEM_LOCATION = object2.enum('BEGIN MEDIM END NONE')  # 位置变量
 
 
 class WordItem(object):
@@ -49,19 +39,16 @@ class WordItem(object):
 
 
 class Sentence(object):
-
-    '''
-    句子对象 ：
-    oristring 原始句内容
-    index 原始句的位置
-    loc 段落中的位置
-    items 分词信息
-    keywords 关键词数目
-    score 关键句打分
-    words 分词
-    wordLen 句子含有的词数目　
-    '''
-
+    """句子信息存储结构体
+        oristring 原始句内容
+        index 原始句的位置
+        loc 段落中的位置
+        items 分词信息
+        keywords 关键词数目
+        score 关键句打分
+        words 分词
+        wordLen 句子含有的词数目　
+    """
     def __init__(self, oristring, index, loc, words=None, items=None, keywords=None, wordLen=0, score=0.):
         self.index = index
         self.items = items
@@ -85,12 +72,10 @@ class Sentence(object):
 
 
 class Summary(object):
-
-    '''
+    """
     基于新闻的摘要功能　
     主要提取新闻关键句子　按照文章顺序输出
-
-    '''
+    """
 
     min_sentence_len = 8
     max_sentence_len = 25
@@ -99,12 +84,12 @@ class Summary(object):
         raise NotImplementedError , 'no implement this func 【%s】' % sys._getframe().f_code.co_name
 
     def summary(self, content, title, summary_sentences=5, pagraph_split='\r\n'):
-        '''
+        """
         摘要主要接口
         content  新闻
         title 新闻的标题
         summary_sentences 返回的句子数目
-        '''
+        """
         # 是否要把标题作为句子切分　有待考虑
         sentences = self.split_sentence(title, pagraph_split)
         # 分割句子　－＞　将文本分割为　Sententce　ｌｉｓｔ
@@ -122,12 +107,12 @@ class Summary(object):
         return (title, sentences)
 
     def get_summary_len(self,  sentences_length, summary_sentences):
-        '''
+        """
         设置摘要的大小
         如果为整数 ， 
             判断是否大于句子长度 ， 如果是返回设置的长度 ， 否则返回 判断是否大于句子长度
         如果为浮点数 ， 计算 句子数目 *取得比率 ， 判断计算的长度是否小于最小限制
-        '''
+        """
         if isinstance(summary_sentences, (float, int)):
             if summary_sentences > 1:
                 return summary_sentences if summary_sentences <= sentences_length else sentences_length
@@ -146,10 +131,10 @@ class Summary(object):
         raise TypeError, 'summary_sentences must be is int or folat '
 
     def split_sentence(self, content, split):
-        '''
+        """
         对输入的文本切分句子
 
-        '''
+        """
         if content:
             if isinstance(content, str):
                 content = content.decode('utf-8')
@@ -186,37 +171,37 @@ class Summary(object):
         return []
 
     def segment(self, sentences):
-        '''
+        """
         content : 每个要分词
         返回值：
-        '''
+        """
         raise NotImplementedError , 'no implement this func 【%s】' % sys._getframe().f_code.co_name
 
     def extractKeyWord(self, sentences, topN=20):
-        '''
+        """
         抽取关键词接口
-        '''
+        """
         raise NotImplementedError , 'no implement this func 【%s】' % sys._getframe().f_code.co_name
 
     def score_sentences(self, sentences):
-        '''
+        """
         每个句子单独打分
-        '''
+        """
         for i in range(len(sentences)):
             sentences[i].score = self.score(sentences[i])
 
     def score(self, sentence):
-        '''
+        """
         单句打分
-        '''
+        """
         raise NotImplementedError , 'no implement this func 【%s】' % sys._getframe().f_code.co_name
 
     def sentences_filter(self, sentences, order=None, reverse=False):
-        '''
+        """
         sentences : 每个文档的句子集合
         score : 阈值
         返回值: sentences
-        '''
+        """
         if sentences:
             if isinstance(sentences, list) and len(sentences) > 0:
                 return sorted(sentences, key=lambda x: getattr(x, order), reverse=reverse)
@@ -225,11 +210,11 @@ class Summary(object):
 
 class SimpleSummary(Summary):
 
-    '''
+    """
     默认自动摘要实现
     分词接口　: FMM  xsegment 或者含有接口为　segment　分词实现类别　　返回值为ｌｉｓｔ　或者　ｔｕｐｌｅ
     ｔａｇ　：　名词词性分析 现在直接调用　本人编写的词性标注类实现
-    '''
+    """
 
     def __init__(self, segment=None, tag=None):
         if segment:
@@ -317,11 +302,12 @@ class WeightArray(object):
 
 
     def get_distance_by_index(self  , row , line ):
-        '''
-        function:
-            下半角矩阵 ， 转换坐标
-
-        '''
+        """得到权重矩阵的value值
+            param:row:权重矩阵的横坐标
+            param:line:权重矩阵的纵坐标
+            rerurn:value:如果有权重值的话，反悔权重值
+            raise:IndexError:
+        """
         if line > row :
             tmp = row 
             row = line 
@@ -331,14 +317,10 @@ class WeightArray(object):
 
 
     def create_distance_map(self, sentences, distance_fun):
-        '''
-        function:
-            创建数据距离map
-        params:
-            sentences 数据，格式 [[label1 , x1 ,x2...,xN ] , [lable2 , x1 , x2 , ..., xN]....[labelN , x1, x2 , ...xN] ]
-        return 
-            sentences_map 
-        '''
+        """创建数据距离map
+        params:sentences:数据，格式 [[label1 , x1 ,x2...,xN ] , [lable2 , x1 , x2 , ..., xN]....[labelN , x1, x2 , ...xN] ]
+        return:sentence_map
+        """
         distance_map = []
         for i in range(len(sentences)):
             tmp_distance = []
@@ -364,12 +346,6 @@ class TextRankSummary(Summary):
         self.iter_count = iter_count #迭代次数
         self.threshold = threshold #阈值 ， 设置此值后 ， 在计算rank的时候，如果小于这个数值时，跳出迭代
 
-
-
-
-
-
-
     def summary(self, content, title, summary_sentences=5, pagraph_split='\r\n'):
         sentences = self.split_sentence(content ,split = pagraph_split )
         self.segment(sentences)
@@ -379,14 +355,15 @@ class TextRankSummary(Summary):
         return '\n'.join([sentences[sentence_score_order[i][1]].oristring for i in range(summary_len)])
 
     def rank(self , iter_count  , threshold ,sentence_weight_map , sentence_len , d = 0.8  ):
-        '''
+        """
         功能:
             param1 
                 sentence_distance_map 句子相似度矩阵
                 sentence_len 句子总数
             return 
                 sentences_score  句子权重值打分
-        '''
+        """
+        
         #初始化句子权重 ，暂时定位1 
         sentences_score = [ 1 - d   for i in  range(sentence_len)]
         sentence_out_sum = [] # 每个句子出链的权重比值
