@@ -109,7 +109,7 @@ class Summary(object):
     def get_summary_len(self,  sentences_length, summary_sentences):
         """
         设置摘要的大小
-        如果为整数 ， 
+        如果为整数 ，
             判断是否大于句子长度 ， 如果是返回设置的长度 ， 否则返回 判断是否大于句子长度
         如果为浮点数 ， 计算 句子数目 *取得比率 ， 判断计算的长度是否小于最小限制
         """
@@ -288,7 +288,7 @@ class SimpleSummary(Summary):
 class WeightArray(object):
 
     def __init__(self, sentences , distance_fun):
-        self.sentences = sentences 
+        self.sentences = sentences
         self.distance_map = self.create_distance_map(sentences, distance_fun)
         self.data_len = len(sentences)
 
@@ -296,7 +296,7 @@ class WeightArray(object):
 
 
     def __getitem__(self, label_tuple):
-        row , line = label_tuple        
+        row , line = label_tuple
         return self.get_distance_by_index(row , line)
 
 
@@ -309,9 +309,9 @@ class WeightArray(object):
             raise:IndexError:
         """
         if line > row :
-            tmp = row 
-            row = line 
-            line = tmp  
+            tmp = row
+            row = line
+            line = tmp
         return self.distance_map[row][line]
 
 
@@ -332,7 +332,7 @@ class WeightArray(object):
             distance_map.append(tmp_distance)
         return distance_map
 
-import math 
+import math
 from collections import Counter
 
 class TextRankSummary(Summary):
@@ -357,36 +357,36 @@ class TextRankSummary(Summary):
     def rank(self , iter_count  , threshold ,sentence_weight_map , sentence_len , d = 0.8  ):
         """
         功能:
-            param1 
+            param1
                 sentence_distance_map 句子相似度矩阵
                 sentence_len 句子总数
-            return 
+            return
                 sentences_score  句子权重值打分
         """
-        
-        #初始化句子权重 ，暂时定位1 
+
+        #初始化句子权重 ，暂时定位1
         sentences_score = [ 1 - d   for i in  range(sentence_len)]
         sentence_out_sum = [] # 每个句子出链的权重比值
         for i in range(sentence_len):
             sentence_out_sum.append( sum(sentence_weight_map[(i , j)] for j in range(sentence_len)))
 
-        #weight_sum 
+        #weight_sum
         for _ in range(iter_count):
             tmp_score = copy(sentences_score)
-            max_diff = None 
+            max_diff = None
             for i in range(sentence_len):
                 #所有句子都是入链
                 for j in range(sentence_len):
                     if i == j:
                         continue
-                    tmp_score[i] +=  d * sentence_weight_map[(i , j )] / sentence_out_sum[j] * sentences_score[j] 
+                    tmp_score[i] +=  d * sentence_weight_map[(i , j )] / sentence_out_sum[j] * sentences_score[j]
                 diff = abs( tmp_score[i] - sentences_score[i] )
                 if max_diff == None or diff > max_diff:
-                    max_diff = diff 
+                    max_diff = diff
             sentences_score = tmp_score
             if max_diff  < threshold:
-                break 
-        return sorted([(sentences_score[i] , i )  for i in range(sentence_len) ] , key =lambda x :  float(x[0]) ,reverse = False) 
+                break
+        return sorted([(sentences_score[i] , i )  for i in range(sentence_len) ] , key =lambda x :  float(x[0]) ,reverse = False)
 
     def segment(self, sentences):
         for sentence in sentences:
@@ -401,15 +401,14 @@ class TextRankSummary(Summary):
         up = sum([vector1[x] * vector2[x] for x in words_bag])
         down  = math.sqrt(sum([ vector1[word] ** 2 for word in vector1.keys()] ) ) * \
             math.sqrt(sum([vector2[word] ** 2 for word in vector2.keys()]))
-        return float(up) / down 
+        return float(up) / down
 
 
 if __name__ == '__main__':
-
-    s = SimpleSummary()
-    x = None
-    with open('d:/feiji') as f:
-        x = ''.join([line for line in f.readlines() if line.strip() != ''])
-    with open('d:/summary.txt' , 'w') as f:
-        for i in s.summary(x, '康佳携手万合天宜启动新生代历练计划', summary_sentences=0.08)[1]:
-            f.write(i.oristring + "\n")
+    import requests
+    from vampire import htmlextract
+    import b2
+    b2.system2.reload_utf8()
+    extract = htmlextract.HtmlExtract()
+    content = requests.get('https://gupiao.baidu.com/article/kx1026976')
+    print extract.get_text(content.text).encode("utf-8")
