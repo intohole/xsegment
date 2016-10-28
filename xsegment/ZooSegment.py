@@ -8,9 +8,9 @@ from b2 import file2
 from b2 import system2
 import os
 from hmm import HSegment
-
+from b2 import object2
 system2.reload_utf8()
-
+import threading
 class Segment(object):
 
     def segment(self, words):
@@ -32,7 +32,7 @@ class SMM(Segment):
             for line in f:
                 word_array = line.rstrip().split()
                 if len(word_array) >= 2:
-                    self.word_dict.add(word_array[0].decode('utf-8'), word_array[1])                    
+                    self.word_dict.add(word_array[0].decode('utf-8'), word_array[1])
 
     def signal_word_in(self, words):
         count = 0
@@ -153,15 +153,17 @@ class BMM(SMM):
 
 
 
-class MMSegment(Segment):
+class MMSegment(Segment,object2.Singleton):
 
-
-
+    _slock = threading.Lock()
     def __init__(self , dictpath= os.path.join(file2.get_caller_dir(),  'dict/dict.txt'), maxlength=5 ):
-        self.__trie = Trie()
-        self.__load_dict(dictpath , self.__trie)
-        self.maxlength = maxlength
-        self.hmm = HSegment()
+        with self._slock:
+            if hasattr(self,"_init") is False:
+                self.__trie = Trie()
+                self.__load_dict(dictpath , self.__trie)
+                self.maxlength = maxlength
+                self.hmm = HSegment()
+                self._init = True
 
     def __load_dict(self , dictpath , trie):
         import sys
@@ -186,7 +188,7 @@ class MMSegment(Segment):
                         items.extend(self.hmm.segment(''.join(unknow)))
                         del unknow[:]
                     items.append(words[lindex : rindex])
-                    lindex = rindex 
+                    lindex = rindex
                     rindex = min(len(words) , self.maxlength + lindex)
                     continue
                 rindex -= 1
@@ -197,7 +199,7 @@ class MMSegment(Segment):
             if len(unknow):
                 items.extend(self.hmm.segment(''.join(unknow)))
                 del unknow[:]
-            return items 
+            return items
         return []
 
 
@@ -207,9 +209,4 @@ class MMSegment(Segment):
 
 if __name__ == "__main__":
     m = MMSegment()
-    import sys
-    reload(sys)
-    sys.setdefaultencoding("utf-8")
-    print m.segment("我爱我的祖国")
-    for word in m.segment("我爱我的祖国"):
-        print word
+    d = MMSegment()

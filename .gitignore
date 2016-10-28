@@ -9,3 +9,4 @@ dist/
 *.swp
 dist/
 xsegment/.ropeproject/
+.ropeproject/
