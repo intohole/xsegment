@@ -11,6 +11,29 @@ from hmm import HSegment
 from b2 import object2
 system2.reload_utf8()
 import threading
+
+class StaticDict(object2.Singleton):
+
+    _dict_lock = threading.Lock()
+    def __init__(self , dictpath= os.path.join(file2.get_caller_dir(),  'dict/dict.txt')):
+        with self._dict_lock:
+            if hasattr(self,"_init") is False:
+                self.__trie = Trie()
+                self.__load_dict(dictpath , self.__trie)
+                self._init = True
+
+    def __load_dict(self , dictpath , trie):
+        import sys
+        sys.stderr.write("load dict starting\n")
+        with open(dictpath) as f:
+            for line in f.readlines():
+                line = line.strip().split()
+                trie.add(line[0].decode("utf-8") , int(line[1]))
+        sys.stderr.write("load dict end \n")
+
+    def get_trie(self):
+        return self.__trie
+
 class Segment(object):
 
     def segment(self, words):
@@ -65,17 +88,6 @@ class SMM(Segment):
                 return words[0]
         return ""
 import re
-
-class WSegment(object):
-
-    __chinese = re.compile(ur'[\u4e00-\u9f5a]+').split
-    def segment(self, words):
-        if words:
-            if isinstance(words , str):
-                words = words.decode('utf-8')
-            if isinstance(words , unicode):
-                for word in self.__chinese(words):
-                    print word
 
 
 
@@ -159,8 +171,7 @@ class MMSegment(Segment,object2.Singleton):
     def __init__(self , dictpath= os.path.join(file2.get_caller_dir(),  'dict/dict.txt'), maxlength=5 ):
         with self._slock:
             if hasattr(self,"_init") is False:
-                self.__trie = Trie()
-                self.__load_dict(dictpath , self.__trie)
+                self.__trie = StaticDict(dictpath)
                 self.maxlength = maxlength
                 self.hmm = HSegment()
                 self._init = True
@@ -202,8 +213,37 @@ class MMSegment(Segment,object2.Singleton):
             return items
         return []
 
+class BMMSegment(MMSegment):
 
 
+
+    def segment(self , words):
+        if words and isinstance(words , basestring) and len(words) > 0 :
+            if not isinstance(words , unicode):
+                words = words.decode('utf-8')
+            rindex = len(words) -1
+            lindex = max(0 , len(words) - self.maxlength)
+            items = []
+            unknow = []
+            while rindex >=0:
+                if self.__trie.search(words[lindex : rindex]):
+                    if len(unknow):
+                        items.extend(self.hmm.segment(''.join(unknow)))
+                        del unknow[:]
+                    items.append(words[lindex : rindex])
+                    rindex = lindex
+                    lindex = max(0 , len(words) - self.maxlength)
+                    continue
+                lindex += 1
+                if rindex == lindex:
+                    unknow.append(words[lindex])
+                    lindex += 1
+                    rindex = min(len(words) , self.maxlength + lindex)
+            if len(unknow):
+                items.extend(self.hmm.segment(''.join(unknow)))
+                del unknow[:]
+            return items
+        return []
 
 
 
