@@ -2,7 +2,6 @@
 #!/usr/bin/env python
 
 from Trie import Trie
-import filetutil
 import PreSegment
 from b2 import file2
 from b2 import system2
