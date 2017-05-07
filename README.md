@@ -7,7 +7,7 @@ zoo-segment 中文分词python分词
 *词典树  
 *hmm分词  
 *正则预分词  
-:::python
+```python
 
        	from xsegment.ZooSegment import * 
        	from xsegment.hmm import HSegment 
@@ -21,7 +21,7 @@ zoo-segment 中文分词python分词
 
 中文拼音支持
 ---------------------
-:::python
+```python
           
           p = pinyin()  
           print p.pinyin_segment('12上帝3aa') #12 shang di 3aa 
@@ -33,7 +33,7 @@ zoo-segment 中文分词python分词
 
 情感极性简单分析
 ---------------------
-:::python
+```python
 
 
      from psentiment import SentimentTrie
@@ -48,7 +48,7 @@ zoo-segment 中文分词python分词
 词性标注
 ----------------------
 * hmm
-:::python
+```python
       
 
       from xsegment.tag import HSpeech  
@@ -59,7 +59,7 @@ zoo-segment 中文分词python分词
 -----------
 * textrank  
 
-:::python
+```python
       
       from xsegment.textrank import TextRank1
       k = TextRank1.create_word_window(分词结果, 7 , weight = True)
@@ -68,8 +68,8 @@ zoo-segment 中文分词python分词
           print i[0], i[1]
 * tfidf
 ```python
-	from xsegment.tfidf import TdIdf
-	tfidf = TdIdf("idf.file")
+	from xsegment.tfidf import TfIdf
+	tfidf = TfIdf("idf.file")
 	# 训练过程
 	tfidf.add("a b c d")
 	tfidf.add("a b c c d")
@@ -87,29 +87,28 @@ zoo-segment 中文分词python分词
 + 基于哈工大开源词林词典实现（词典已经很久没更新，使用word2vec会更加好一点？）
 
 
-:::python
+```python
 
 	from xsegment.wordsim import WordSim
 	wordsim = WordSim()
 	wordsim.word_sim("你" , "我" ， desc = True) #返回词之间距离数组 ， 按照降序排列 ， 升序 desc = False
-
+```
 自动摘要
 -------------
 + 基于自然语言摘要
 + 基于textrank自动摘要
 
-:::python
+```python
 
 	from xsegment.summary import SimpleSummary
 	from xsegment.summary import TextRankSummary
 	summary = SimpleSummary() #TextRankSummary()
 	summary.summary("文章内容" , "标题" ) #返回摘要
-
+```
 Simhash文本相似计算
 ------------
 
-:::python
-
+```python
 			>>> from xsegment.simhash import SimHash
 	        >>> def segfun(words):
             ...     return [ words[i:i+2] for i in range(len(words) - 1)]
@@ -117,22 +116,23 @@ Simhash文本相似计算
             >>> s.figureprint("abc") == s.figureprint("abc")
             >>> s.figureprint("abc") == s.figureprint("abcd")
             >>> s.distance(s.figureprint("abc") , s.figureprint("abcde"))
+```
 
 文档相似度计算
 ----------------
 + 余弦算法
 
 
-::::python
-		
+```python
 		from xsegment.similar import consine
 		consine("我 的 中国 是 伟大 的" , "我 爱 我 的 祖国" , split_fun = lambda x: x.split())
+```
 
 多文档相似度
 ------------
 
 
-:::python
+```python
 	
 		from xsegment.vsm import Vector
 		v = Vector()
@@ -141,12 +141,13 @@ Simhash文本相似计算
     	v.add_doc('c', 'c d f e r a c')
     	# print v.totfidf()
     	print v.similarty('a', 'b')
-
+```
 
 挖掘新词  	
 --------------      
 
 
-:::python
+```python
 
     python xsegment/word_rec.py -i [文件/路径] 
+```
