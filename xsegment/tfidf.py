@@ -12,6 +12,14 @@ __all__ = ["TfIdf"]
 
 class TfIdf(object):
     """关键词提取工具
+        Test:
+            >>> tfidf = TfIdf("idf.data")
+            >>> tfidf.add("a b c")
+            >>> tfidf.add("a d") 
+            >>> tfidf.add("a b") 
+            >>> tfidf.train()
+            >>> tfidf.calc("a b c c d")
+            [('c', 1.1699250014423124), ('d', 0.5849625007211562), ('b', 0.0), ('a', -0.4150374992788438)]
     """
 
 
@@ -21,9 +29,9 @@ class TfIdf(object):
         """
         self.doc_count = 0
         self.word_doc_info = defaultdict(int)
-        self.default_idf = None
-        self.tfidf_file = tfidf_file
-        self.idf = defaultdict(float) or self.load()
+        self.default_idf = None 
+        self.idf_file = idf_file
+        self.idf = (self.load() or defaultdict(float) )
         
 
     def add(self,doc):
@@ -33,9 +41,7 @@ class TfIdf(object):
         """
         if isinstance(doc,basestring):
             doc = doc.split()
-        elif isinstance(doc,(list,tuple)):
-            pass
-        else:
+        elif not isinstance(doc,(list,tuple)):
             raise TypeError("Unsupported type {}".format(type(doc).__name__))
         for item in doc:
             self.word_doc_info[item] += 1
@@ -44,7 +50,7 @@ class TfIdf(object):
     def train(self):
         """进行idf统计函数
         """
-        for item,count in self.word_doc_info:
+        for item,count in self.word_doc_info.items():
             self.idf[item] = math.log(self.doc_count / (count + 1.),2)  
     
     def get_idf(self, word):
@@ -55,15 +61,15 @@ class TfIdf(object):
         return self.default_idf
 
     def load(self):
-        if not os.path.exists(self.tfidf_file) or not os.path.isfile(self.tfidf_file):
+        if not os.path.exists(self.idf_file) or not os.path.isfile(self.idf_file):
             return None
-            
-        
-        with open(self.tfidf_file) as f:
-            return json.loads(f.readline())  
-    
+        d = defaultdict(float)
+        with open(self.idf_file) as f:
+            d.update(json.loads(f.readline()))
+        return d 
+
     def save(self):
-        with open(self.tfidf_file,"w") as f:
+        with open(self.idf_file,"w") as f:
             f.write(json.dumps(self.idf) + "\n")
 
     def calc(self,doc,sort = True):
@@ -76,10 +82,8 @@ class TfIdf(object):
             raise ValueError("doc is none!") 
         if isinstance(doc,basestring):
             doc = doc.split()
-        elif isinstance(doc,(list,tuple)):
-            pass
-        else:
+        elif not isinstance(doc,(list,tuple)):
             raise TypeError("Unsupported type {}".format(type(doc).__name__))
         wordCounter = Counter(doc) 
         word_array = [ (word,tf * self.get_idf(word) ) for word,tf in wordCounter.items()] 
-        return sorted(word_array,lambda x:x[1],reverse = False) if sort is True else word_array
+        return sorted(word_array,key = lambda x:x[1],reverse = True) if sort is True else word_array
