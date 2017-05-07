@@ -66,6 +66,21 @@ zoo-segment 中文分词python分词
       scoremap = TextRank1.textrank(k , iter_count = 100)
       for i in TextRank1.sort_score(scoremap , 12):
           print i[0], i[1]
+* tfidf
+```python
+	from xsegment.tfidf import TdIdf
+	tfidf = TdIdf("idf.file")
+	# 训练过程
+	tfidf.add("a b c d")
+	tfidf.add("a b c c d")
+	tfidf.add("a a a b")
+	tfidf.add("a")
+	tfidf.add("a c")
+	tfidf.train()
+	tfidf.save()
+	tfidf.calc("a b b")
+```
+		
 
 词语义距离
 --------------

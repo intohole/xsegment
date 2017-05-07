@@ -43,7 +43,7 @@ class TfIdf(object):
             doc = doc.split()
         elif not isinstance(doc,(list,tuple)):
             raise TypeError("Unsupported type {}".format(type(doc).__name__))
-        for item in doc:
+        for item in set(doc):
             self.word_doc_info[item] += 1
         self.doc_count += 1
 
