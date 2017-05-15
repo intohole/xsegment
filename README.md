@@ -21,16 +21,17 @@ zoo-segment 中文分词python分词
 
 中文拼音支持
 ---------------------
+
+
 ```python
-          
-          p = pinyin()  
-          print p.pinyin_segment('12上帝3aa') #12 shang di 3aa 
-          print p.pinyin_segment('12上帝3aa' ,'#') #  'shang#di#3aa  
-          会自动提取汉字进行转换  
-          print p.zh2pinyin('我爱a') # wo ai a 不会自动转换不是汉字  
-          print p.zh2pinyin('我爱a' , '#') # wo#ai#a
+	    p = pinyin()  
+	    print p.pinyin_segment('12上帝3aa') #12 shang di 3aa 
+	    print p.pinyin_segment('12上帝3aa' ,'#') #  'shang#di#3aa  
+	    会自动提取汉字进行转换  
+	    print p.zh2pinyin('我爱a') # wo ai a 不会自动转换不是汉字  
+	    print p.zh2pinyin('我爱a' , '#') # wo#ai#a
 
-
+```
 情感极性简单分析
 ---------------------
 ```python
@@ -111,13 +112,13 @@ Simhash文本相似计算
 ------------
 
 ```python
-			>>> from xsegment.simhash import SimHash
-	        >>> def segfun(words):
-            ...     return [ words[i:i+2] for i in range(len(words) - 1)]
-            >>> s = SimHash( segfun = segfun)
-            >>> s.figureprint("abc") == s.figureprint("abc")
-            >>> s.figureprint("abc") == s.figureprint("abcd")
-            >>> s.distance(s.figureprint("abc") , s.figureprint("abcde"))
+	>>> from xsegment.simhash import SimHash
+	>>> def segfun(words):
+	...     return [ words[i:i+2] for i in range(len(words) - 1)]
+	>>> s = SimHash( segfun = segfun)
+	>>> s.figureprint("abc") == s.figureprint("abc")
+	>>> s.figureprint("abc") == s.figureprint("abcd")
+	>>> s.distance(s.figureprint("abc") , s.figureprint("abcde"))
 ```
 
 文档相似度计算
@@ -150,6 +151,5 @@ Simhash文本相似计算
 
 
 ```python
-
     python xsegment/word_rec.py -i [文件/路径] 
 ```
