@@ -1,7 +1,7 @@
 # coding=utf-8
 #!/usr/bin/env python
 
-from Trie import Trie
+from b2.ds2 import DTrie
 import PreSegment
 from b2 import file2
 from b2 import system2
@@ -17,7 +17,7 @@ class StaticDict(object2.Singleton):
     def __init__(self , dictpath= os.path.join(file2.get_caller_dir(),  'dict/dict.txt')):
         with self._dict_lock:
             if hasattr(self,"_init") is False:
-                self.__trie = Trie()
+                self.__trie = DTrie()
                 self.__load_dict(dictpath , self.__trie)
                 self._init = True
 
@@ -41,7 +41,7 @@ class Segment(object):
 
 class SMM(Segment):
 
-    word_dict = Trie()  # 词典树
+    word_dict = DTrie()  # 词典树
 
     def __init__(self, dictpath=os.path.join(file2.get_caller_dir(),  'dict/dict.txt'), maxlength=5):
         self.word_dictpath = dictpath

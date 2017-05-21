@@ -2,6 +2,7 @@
 
 
 from collections import defaultdict
+from collections import OrderedDict
 from collections import Counter
 import json
 import math
@@ -61,7 +62,7 @@ class TfIdf(object):
         return self.default_idf
 
     def load(self):
-        if not os.path.exists(self.idf_file) or not os.path.isfile(self.idf_file):
+        if self.idf_file is None or not os.path.exists(self.idf_file) or not os.path.isfile(self.idf_file):
             return None
         d = defaultdict(float)
         with open(self.idf_file) as f:
@@ -72,7 +73,7 @@ class TfIdf(object):
         with open(self.idf_file,"w") as f:
             f.write(json.dumps(self.idf) + "\n")
 
-    def calc(self,doc,sort = True):
+    def calc(self,doc,r = "array",sort = True):
         """计算文档内部所有词的tfidf
             param:doc:(bastring|list|tuple):需要计算文档集合
             param:sort:Boolean:是否需要排序返回，如果为True，整体按照tfidf排序
@@ -85,5 +86,10 @@ class TfIdf(object):
         elif not isinstance(doc,(list,tuple)):
             raise TypeError("Unsupported type {}".format(type(doc).__name__))
         wordCounter = Counter(doc) 
-        word_array = [ (word,tf * self.get_idf(word) ) for word,tf in wordCounter.items()] 
-        return sorted(word_array,key = lambda x:x[1],reverse = True) if sort is True else word_array
+        if r not in ["array","dict"]:
+            raise ValueError("param r must be in [array,dict]")
+        tfidfDict = {word:tf * self.get_idf(word) for word,tf in wordCounter.items()}
+        if r == "array":
+            return sorted(tfidfDict.items(),key = lambda x:x[1],reverse = True) if sort is True else tfidfDict.items() 
+        else:
+            return tfidfDict if sort is True else OrderedDict(sorted(tfidfDict.items(),key = lambda x:x[1],reverse = True))
