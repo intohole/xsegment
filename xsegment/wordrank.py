@@ -2,9 +2,9 @@
 
 
 
-from moodstyle.PageRank import PageRank
-from moodstyle.PageRank import GraphV2
-from moodstyle.Ngram import ngram2List
+from moodstyle.alg.PageRank import PageRank
+from moodstyle.alg.PageRank import GraphV2
+from moodstyle.text.Ngram import ngram2List
 from b2 import exceptions2
 from b2 import object2
 from b2 import sort2
