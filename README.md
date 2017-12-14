@@ -55,11 +55,8 @@ print h.tag('xsegment')
 * textrank  
 
 ```python
-from xsegment.textrank import TextRank1
-k = TextRank1.create_word_window(分词结果, 7 , weight = True)
-scoremap = TextRank1.textrank(k , iter_count = 100)
-for i in TextRank1.sort_score(scoremap , 12):
-    print i[0], i[1]
+from xsegment.wordrank import TextRank
+TextRank.extract_key_word("a b a c a c b d a b a",3)
 ```
 * tfidf
 ```python
