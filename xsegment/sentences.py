@@ -2,6 +2,7 @@
 
 import chardet
 
+
 class Sentence(object):
     """句子信息存储结构体
         oristring 原始句内容
@@ -13,7 +14,16 @@ class Sentence(object):
         words 分词
         wordLen 句子含有的词数目　
     """
-    def __init__(self, oristring, index, loc, words=None, items=None, keywords=None, wordLen=0, score=0.):
+
+    def __init__(self,
+                 oristring,
+                 index,
+                 loc,
+                 words=None,
+                 items=None,
+                 keywords=None,
+                 wordLen=0,
+                 score=0.):
         self.index = index
         self.items = items
         self.score = score
@@ -35,12 +45,10 @@ class Sentence(object):
         return '\n'.join(msg)
 
 
-
-
 def split_sentence(self, content, split):
     """对输入的文本切分句子
     """
-    if content is not None and isinstance(content,basestring):
+    if content is not None and isinstance(content, basestring):
         code = chardet.detect(content)
         if code["encoding"].lower() != "utf-8":
             content.encode(code["encoding"]).decode("utf-8")
@@ -55,16 +63,23 @@ def split_sentence(self, content, split):
                 if pagraph[i] in ['!', '！', '?', '？', ';', '；']:
                     index = index + 1
                     sentences.append(
-                        Sentence(pagraph[split_last: i + 1], index, loc))
+                        Sentence(pagraph[split_last:i + 1], index, loc))
                     split_last = i + 1
                 if pagraph[i] == '。':
                     if i > 1:
-                        if pagraph[i - 1] in ['１', '２', '３', '４', '５', '６', '７', '８', '９', '０']:
-                            if ((i + 1) < len(pagraph)) and pagraph[i + 1] in ['１', '２', '３', '４', '５', '６', '７', '８', '９', '０']:
+                        if pagraph[i - 1] in [
+                                '１', '２', '３', '４', '５', '６', '７', '８', '９',
+                                '０'
+                        ]:
+                            if ((i + 1) < len(pagraph)) and pagraph[i + 1] in [
+                                    '１', '２', '３', '４', '５', '６', '７', '８',
+                                    '９', '０'
+                            ]:
                                 continue
                     index = index + 1
                     sentences.append(
-                        Sentence(pagraph[split_last: i + 1].strip(), index, loc))
+                        Sentence(pagraph[split_last:i + 1].strip(), index,
+                                 loc))
                     split_last = i + 1
             if split_last != len(pagraph):
                 sentences.append(

@@ -13,15 +13,10 @@ system2.reload_utf8()
     2. 基于textrank摘要算法实现
 """
 
-
-
-
-
 ITEM_LOCATION = object2.enum('BEGIN MEDIM END NONE')  # 位置变量
 
 
 class WordItem(object):
-
     def __init__(self, word, tag, isKeyWord=False):
         self.word = word
         self.tag = tag
@@ -31,8 +26,8 @@ class WordItem(object):
         msg = []
         for __key, __val in self.__dict__.items():
             if isinstance(__val, (list, tuple)):
-                msg.append('%s %s' %
-                           (__key, ' '.join([str(__v) for __v in __val])))
+                msg.append('%s %s' % (__key,
+                                      ' '.join([str(__v) for __v in __val])))
             else:
                 msg.append('[%s %s]' % (__key, __val))
         return ' '.join(msg)
@@ -49,7 +44,16 @@ class Sentence(object):
         words 分词
         wordLen 句子含有的词数目　
     """
-    def __init__(self, oristring, index, loc, words=None, items=None, keywords=None, wordLen=0, score=0.):
+
+    def __init__(self,
+                 oristring,
+                 index,
+                 loc,
+                 words=None,
+                 items=None,
+                 keywords=None,
+                 wordLen=0,
+                 score=0.):
         self.index = index
         self.items = items
         self.score = score
@@ -81,9 +85,14 @@ class Summary(object):
     max_sentence_len = 25
 
     def __init__(self):
-        raise NotImplementedError , 'no implement this func 【%s】' % sys._getframe().f_code.co_name
+        raise NotImplementedError, 'no implement this func 【%s】' % sys._getframe(
+        ).f_code.co_name
 
-    def summary(self, content, title, summary_sentences=5, pagraph_split='\r\n'):
+    def summary(self,
+                content,
+                title,
+                summary_sentences=5,
+                pagraph_split='\r\n'):
         """
         摘要主要接口
         content  新闻
@@ -95,18 +104,18 @@ class Summary(object):
         # 分割句子　－＞　将文本分割为　Sententce　ｌｉｓｔ
         sentences.extend(self.split_sentence(content, pagraph_split))
         self.segment(sentences)  # 分词　将所有句子对象转换为分词
-        self.extractKeyWord(sentences, topN=30)  # 抽取关键词　
+        self.extractKeyWord(sentences, topN=30)  # 抽取关键词
         self.score_sentences(sentences)  # 根据　句子信息对文章打分
         # 根据句子得分高低排序　得分高的在前面
         sentences = self.sentences_filter(sentences, 'score', reverse=True)
-        summary_len = self.get_summary_len(len(sentences) ,  summary_sentences)
+        summary_len = self.get_summary_len(len(sentences), summary_sentences)
 
         # if len(sentences) > summary_sentences:  # 判断　是否超过需要的句子数目
-        sentences = sentences[: summary_len]  # 句子数目
+        sentences = sentences[:summary_len]  # 句子数目
         sentences = self.sentences_filter(sentences, 'index')
         return (title, sentences)
 
-    def get_summary_len(self,  sentences_length, summary_sentences):
+    def get_summary_len(self, sentences_length, summary_sentences):
         """
         设置摘要的大小
         如果为整数 ，
@@ -149,20 +158,29 @@ class Summary(object):
                     if pagraph[i] in ['!', '！', '?', '？', ';', '；']:
                         index = index + 1
                         sentences.append(
-                            Sentence(pagraph[split_last: i + 1], index, loc))
+                            Sentence(pagraph[split_last:i + 1], index, loc))
                         split_last = i + 1
                     if pagraph[i] == '。':
                         if i > 1:
-                            if pagraph[i - 1] in ['１', '２', '３', '４', '５', '６', '７', '８', '９', '０']:
-                                if ((i + 1) < len(pagraph)) and pagraph[i + 1] in ['１', '２', '３', '４', '５', '６', '７', '８', '９', '０']:
+                            if pagraph[i - 1] in [
+                                    '１', '２', '３', '４', '５', '６', '７', '８',
+                                    '９', '０'
+                            ]:
+                                if ((i + 1) <
+                                        len(pagraph)) and pagraph[i + 1] in [
+                                            '１', '２', '３', '４', '５', '６', '７',
+                                            '８', '９', '０'
+                                        ]:
                                     continue
                         index = index + 1
                         sentences.append(
-                            Sentence(pagraph[split_last: i + 1].strip(), index, loc))
+                            Sentence(pagraph[split_last:i + 1].strip(), index,
+                                     loc))
                         split_last = i + 1
                 if split_last != len(pagraph):
                     sentences.append(
-                        Sentence(pagraph[split_last:], index, ITEM_LOCATION.END))
+                        Sentence(pagraph[split_last:], index,
+                                 ITEM_LOCATION.END))
                 if len(sentences) > save_sentences_len:
                     sentences[save_sentences_len].loc = ITEM_LOCATION.BEGIN
                 if len(sentences) > (save_sentences_len + 1):
@@ -175,13 +193,15 @@ class Summary(object):
         content : 每个要分词
         返回值：
         """
-        raise NotImplementedError , 'no implement this func 【%s】' % sys._getframe().f_code.co_name
+        raise NotImplementedError, 'no implement this func 【%s】' % sys._getframe(
+        ).f_code.co_name
 
     def extractKeyWord(self, sentences, topN=20):
         """
         抽取关键词接口
         """
-        raise NotImplementedError , 'no implement this func 【%s】' % sys._getframe().f_code.co_name
+        raise NotImplementedError, 'no implement this func 【%s】' % sys._getframe(
+        ).f_code.co_name
 
     def score_sentences(self, sentences):
         """
@@ -194,7 +214,8 @@ class Summary(object):
         """
         单句打分
         """
-        raise NotImplementedError , 'no implement this func 【%s】' % sys._getframe().f_code.co_name
+        raise NotImplementedError, 'no implement this func 【%s】' % sys._getframe(
+        ).f_code.co_name
 
     def sentences_filter(self, sentences, order=None, reverse=False):
         """
@@ -204,12 +225,14 @@ class Summary(object):
         """
         if sentences:
             if isinstance(sentences, list) and len(sentences) > 0:
-                return sorted(sentences, key=lambda x: getattr(x, order), reverse=reverse)
+                return sorted(
+                    sentences,
+                    key=lambda x: getattr(x, order),
+                    reverse=reverse)
         raise TypeError, 'sentences must be list and item is sententce'
 
 
 class SimpleSummary(Summary):
-
     """
     默认自动摘要实现
     分词接口　: FMM  xsegment 或者含有接口为　segment　分词实现类别　　返回值为ｌｉｓｔ　或者　ｔｕｐｌｅ
@@ -233,23 +256,25 @@ class SimpleSummary(Summary):
             items = []
             tags = self.__tag.tag(sentences[i].words)
             if tags:
-                sentences[i].items = [WordItem(__word[0], __word[1])
-                                      for __word in tags]
+                sentences[i].items = [
+                    WordItem(__word[0], __word[1]) for __word in tags
+                ]
             else:
                 sentences[i].items = []
 
     def extractKeyWord(self, sentences, topN=20):
         words = []
         for i in range(len(sentences)):
-            words.extend(
-                [item.word for item in sentences[i].items
-                 if len(item.tag) > 0
-                 and item.tag[0] in ['n', 'r', 'v']
-                 and len(item.word) > 1 and i > 0]
-            )
+            words.extend([
+                item.word for item in sentences[i].items
+                if len(item.tag) > 0 and item.tag[0] in ['n', 'r', 'v']
+                and len(item.word) > 1 and i > 0
+            ])
         keywords = TextRank1.extract_key_word(words, 3, topN)
-        keywords.extend(
-            [item.word for item in sentences[1].items if len(item.tag) > 0 and item.tag[0] in ['n', 'r', 'v']])
+        keywords.extend([
+            item.word for item in sentences[1].items
+            if len(item.tag) > 0 and item.tag[0] in ['n', 'r', 'v']
+        ])
         for i in range(len(sentences)):
             keyWordsLen = 0
             for j in range(len(sentences[i].items)):
@@ -275,46 +300,40 @@ class SimpleSummary(Summary):
 
     def __cos(self, sentence1, sentence2, split_word=' '):
         if sentence1 and sentence2:
-            if isinstance(sentence1, (str, unicode)) and isinstance(sentence2, (str, unicode)):
+            if isinstance(sentence1, (str, unicode)) and isinstance(
+                    sentence2, (str, unicode)):
                 sentence1 = [word for word in sentence1.split(split_word)]
                 sentence2 = [word for word in sentence2.split(split_word)]
-            elif isinstance(sentence1, (list, tuple)) and isinstance(sentence2, (list, tuple)):
-                raise NotImplementedError , 'no implement this func 【%s】' % sys._getframe().f_code.co_name
+            elif isinstance(sentence1, (list, tuple)) and isinstance(
+                    sentence2, (list, tuple)):
+                raise NotImplementedError, 'no implement this func 【%s】' % sys._getframe(
+                ).f_code.co_name
             else:
                 raise TypeError
 
 
-
 class WeightArray(object):
-
-    def __init__(self, sentences , distance_fun):
+    def __init__(self, sentences, distance_fun):
         self.sentences = sentences
         self.distance_map = self.create_distance_map(sentences, distance_fun)
         self.data_len = len(sentences)
 
-
-
-
     def __getitem__(self, label_tuple):
-        row , line = label_tuple
-        return self.get_distance_by_index(row , line)
+        row, line = label_tuple
+        return self.get_distance_by_index(row, line)
 
-
-
-    def get_distance_by_index(self  , row , line ):
+    def get_distance_by_index(self, row, line):
         """得到权重矩阵的value值
             param:row:权重矩阵的横坐标
             param:line:权重矩阵的纵坐标
             rerurn:value:如果有权重值的话，反悔权重值
             raise:IndexError:
         """
-        if line > row :
+        if line > row:
             tmp = row
             row = line
             line = tmp
         return self.distance_map[row][line]
-
-
 
     def create_distance_map(self, sentences, distance_fun):
         """创建数据距离map
@@ -328,33 +347,49 @@ class WeightArray(object):
                 if i == j:
                     tmp_distance.append(0)
                 else:
-                    tmp_distance.append(distance_fun(sentences[i], sentences[j]))
+                    tmp_distance.append(
+                        distance_fun(sentences[i], sentences[j]))
             distance_map.append(tmp_distance)
         return distance_map
+
 
 import math
 from collections import Counter
 
-class TextRankSummary(Summary):
 
+class TextRankSummary(Summary):
     """docstring for TextRankSummary"""
 
-    def __init__(self , d = 0.85 , threshold = 0.05 ,iter_count = 100 ):
+    def __init__(self, d=0.85, threshold=0.05, iter_count=100):
         super(TextRankSummary, self).__init__()
 
-        self.d = d #阻尼系数
-        self.iter_count = iter_count #迭代次数
-        self.threshold = threshold #阈值 ， 设置此值后 ， 在计算rank的时候，如果小于这个数值时，跳出迭代
+        self.d = d  #阻尼系数
+        self.iter_count = iter_count  #迭代次数
+        self.threshold = threshold  #阈值 ， 设置此值后 ， 在计算rank的时候，如果小于这个数值时，跳出迭代
 
-    def summary(self, content, title, summary_sentences=5, pagraph_split='\r\n'):
-        sentences = self.split_sentence(content ,split = pagraph_split )
+    def summary(self,
+                content,
+                title,
+                summary_sentences=5,
+                pagraph_split='\r\n'):
+        sentences = self.split_sentence(content, split=pagraph_split)
         self.segment(sentences)
-        sentence_weight_map = WeightArray(sentences , self.distance)
-        sentence_score_order = self.rank(self.iter_count , 0.01 , sentence_weight_map , len(sentences) , self.d )
-        summary_len = self.get_summary_len(len(sentences) ,  summary_sentences)
-        return '\n'.join([sentences[sentence_score_order[i][1]].oristring for i in range(summary_len)])
+        sentence_weight_map = WeightArray(sentences, self.distance)
+        sentence_score_order = self.rank(self.iter_count,
+                                         0.01, sentence_weight_map,
+                                         len(sentences), self.d)
+        summary_len = self.get_summary_len(len(sentences), summary_sentences)
+        return '\n'.join([
+            sentences[sentence_score_order[i][1]].oristring
+            for i in range(summary_len)
+        ])
 
-    def rank(self , iter_count  , threshold ,sentence_weight_map , sentence_len , d = 0.8  ):
+    def rank(self,
+             iter_count,
+             threshold,
+             sentence_weight_map,
+             sentence_len,
+             d=0.8):
         """
         功能:
             param1
@@ -365,10 +400,11 @@ class TextRankSummary(Summary):
         """
 
         #初始化句子权重 ，暂时定位1
-        sentences_score = [ 1 - d   for i in  range(sentence_len)]
-        sentence_out_sum = [] # 每个句子出链的权重比值
+        sentences_score = [1 - d for i in range(sentence_len)]
+        sentence_out_sum = []  # 每个句子出链的权重比值
         for i in range(sentence_len):
-            sentence_out_sum.append( sum(sentence_weight_map[(i , j)] for j in range(sentence_len)))
+            sentence_out_sum.append(
+                sum(sentence_weight_map[(i, j)] for j in range(sentence_len)))
 
         #weight_sum
         for _ in range(iter_count):
@@ -379,22 +415,28 @@ class TextRankSummary(Summary):
                 for j in range(sentence_len):
                     if i == j:
                         continue
-                    tmp_score[i] +=  d * sentence_weight_map[(i , j )] / sentence_out_sum[j] * sentences_score[j]
-                diff = abs( tmp_score[i] - sentences_score[i] )
+                    tmp_score[i] += d * sentence_weight_map[(
+                        i, j)] / sentence_out_sum[j] * sentences_score[j]
+                diff = abs(tmp_score[i] - sentences_score[i])
                 if max_diff == None or diff > max_diff:
                     max_diff = diff
             sentences_score = tmp_score
-            if max_diff  < threshold:
+            if max_diff < threshold:
                 break
-        return sorted([(sentences_score[i] , i )  for i in range(sentence_len) ] , key =lambda x :  float(x[0]) ,reverse = False)
+        return sorted(
+            [(sentences_score[i], i) for i in range(sentence_len)],
+            key=lambda x: float(x[0]),
+            reverse=False)
 
     def segment(self, sentences):
         for sentence in sentences:
-            sentence.words = [ sentence.oristring[i : i + 2] for i in range( len(sentence.oristring) - 2)]
+            sentence.words = [
+                sentence.oristring[i:i + 2]
+                for i in range(len(sentence.oristring) - 2)
+            ]
             sentence.words_len = len(sentence.words)
 
-
-    def distance(self , sentence1 , sentence2 ):
+    def distance(self, sentence1, sentence2):
         vector1 = Counter(sentence1.words)
         vector2 = Counter(sentence2.words)
         words_bag = set(vector2.keys()) & set(vector2.keys())
@@ -402,13 +444,3 @@ class TextRankSummary(Summary):
         down  = math.sqrt(sum([ vector1[word] ** 2 for word in vector1.keys()] ) ) * \
             math.sqrt(sum([vector2[word] ** 2 for word in vector2.keys()]))
         return float(up) / down
-
-
-if __name__ == '__main__':
-    import requests
-    from vampire import htmlextract
-    import b2
-    b2.system2.reload_utf8()
-    extract = htmlextract.HtmlExtract()
-    content = requests.get('https://gupiao.baidu.com/article/kx1026976')
-    print extract.get_text(content.text).encode("utf-8")

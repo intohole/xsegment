@@ -9,11 +9,38 @@ class SegmentTrain(object):
     __start_state = {'s': 1., 'b': 1., 'm': 1., 'e': 1.}
     # 隐藏状态转移
     __transition_probability = {
-        's': {'s': 1.,  'b': 1., 'm': 1., 'e': 1.}, 'b': {'s': 1.,  'b': 1., 'm': 1., 'e': 1.},
-'m': {'s': 1.,  'b': 1., 'm': 1., 'e': 1.}, 'e': {'s': 1.,  'b': 1., 'm': 1., 'e': 1.}}
+        's': {
+            's': 1.,
+            'b': 1.,
+            'm': 1.,
+            'e': 1.
+        },
+        'b': {
+            's': 1.,
+            'b': 1.,
+            'm': 1.,
+            'e': 1.
+        },
+        'm': {
+            's': 1.,
+            'b': 1.,
+            'm': 1.,
+            'e': 1.
+        },
+        'e': {
+            's': 1.,
+            'b': 1.,
+            'm': 1.,
+            'e': 1.
+        }
+    }
     # 隐藏状态下各个观察状态发生频率
-    __emission_probability = {'s': defaultdict(float), 'e': defaultdict(
-        float), 'b': defaultdict(float), 'm': defaultdict(float)}
+    __emission_probability = {
+        's': defaultdict(float),
+        'e': defaultdict(float),
+        'b': defaultdict(float),
+        'm': defaultdict(float)
+    }
 
     word_state = set()
 
@@ -47,18 +74,18 @@ class SegmentTrain(object):
                 for mid_word in word[1:-1]:
                     word_label.append(('m', mid_word))
                 word_label.append(('e', word[-1]))
-         # 2元文法
+        # 2元文法
         for i in range(len(word_label) - 1):
-            self.__transition_probability[
-                word_label[i][0]][word_label[i + 1][0]] += 1
+            self.__transition_probability[word_label[i][0]][word_label[i + 1][
+                0]] += 1
         # 循环整个标记
         for i in range(len(word_label)):
             self.word_state.add(word_label[i][1])
             self.state[word_label[i][0]] += 1
-            self.__emission_probability[
-                word_label[i][0]][word_label[i][1]] += 1
+            self.__emission_probability[word_label[i][0]][word_label[i][
+                1]] += 1
 
-    def train(self, content = []):
+    def train(self, content=[]):
         for line in content:
             self.add_line(line)
         self.translte()
@@ -79,17 +106,19 @@ class SegmentTrain(object):
 
         # 转移矩阵
         for __state in self.__transition_probability.keys():
-            for __afther_state in self.__transition_probability[__state].keys():
-            # 计算公式 =》 p(Cj | Ci) = count(Ci,Cj) / count(Ci)
-                self.__transition_probability[__state][__afther_state] = self.__transition_probability[
-                    __state][__afther_state] / self.state[__state]
+            for __afther_state in self.__transition_probability[
+                    __state].keys():
+                # 计算公式 =》 p(Cj | Ci) = count(Ci,Cj) / count(Ci)
+                self.__transition_probability[__state][
+                    __afther_state] = self.__transition_probability[__state][
+                        __afther_state] / self.state[__state]
 
-         # 观察状态发生时候 隐藏状态发生概率
+        # 观察状态发生时候 隐藏状态发生概率
         for __hide in self.__emission_probability.keys():
             for word in self.word_state:
                 self.__emission_probability[__hide][word] = (
-                    self.__emission_probability[__hide][word] + 1) / self.state[__hide]
-
+                    self.__emission_probability[__hide][word] + 1
+                ) / self.state[__hide]
 
 
 class TagTrain(object):
@@ -114,22 +143,27 @@ class TagTrain(object):
             f.write(json.dumps(self.__transition_probability))
         with open('tag_obs_status.dat', 'w') as f:
             f.write(json.dumps(self.__obs_status))
-        
 
     def add_line(self, line):
         if not (line and isinstance(line, (str, unicode)) and line != ''):
             raise Exception, line
-        tag_arry =[label for label in [ __tag.split('/') for __tag in line.strip().split()] if len(label) > 1 and label[1] != '' and label[0] != "" ]
+        tag_arry = [
+            label
+            for label in [__tag.split('/') for __tag in line.strip().split()]
+            if len(label) > 1 and label[1] != '' and label[0] != ""
+        ]
         if len(tag_arry) < 0:
             return
         try:
             self.__start_state[tag_arry[0][1]] += 1.
-        except Exception,e:
+        except Exception, e:
             print e
-        for i in range(1 , len(tag_arry)):
+        for i in range(1, len(tag_arry)):
             if not self.__transition_probability.has_key(tag_arry[i][1]):
-                self.__transition_probability[tag_arry[i][1]] = defaultdict(float)
-            self.__transition_probability[tag_arry[i][1]][tag_arry[i-1][1]] += 1
+                self.__transition_probability[tag_arry[i][1]] = defaultdict(
+                    float)
+            self.__transition_probability[tag_arry[i][1]][tag_arry[i - 1][
+                1]] += 1
         for __tag in tag_arry:
             self.word_state.add(__tag[0])
             self.__obs_status[__tag[1]] += 1
@@ -163,17 +197,19 @@ class TagTrain(object):
         # 转移矩阵
         for __state in self.__transition_probability.keys():
             for __afther_state in self.__obs_status.keys():
-            # 计算公式 =》 p(Cj | Ci) = count(Ci,Cj) / count(Ci)
-                self.__transition_probability[__state][__afther_state] = (self.__transition_probability[
-                    __state][__afther_state] + 1.0)/ (self.__obs_status[__state] + 1.0)
+                # 计算公式 =》 p(Cj | Ci) = count(Ci,Cj) / count(Ci)
+                self.__transition_probability[__state][__afther_state] = (
+                    self.__transition_probability[__state][__afther_state] +
+                    1.0) / (self.__obs_status[__state] + 1.0)
 
-         # 观察状态发生时候 隐藏状态发生概率
+        # 观察状态发生时候 隐藏状态发生概率
         for __hide in self.__emission_probability.keys():
             for word in self.__emission_probability[__hide].keys():
                 try:
                     self.__emission_probability[__hide][word] = (
-                    self.__emission_probability[__hide][word] + 1) / (self.__obs_status[__hide] + 1)
-                except Exception,e:
+                        self.__emission_probability[__hide][word] + 1) / (
+                            self.__obs_status[__hide] + 1)
+                except Exception, e:
                     print __hide
 
 
@@ -186,15 +222,15 @@ if __name__ == '__main__':
     word = re.compile('/[a-z]+\s?')
     diff = set()
     for file_name in os.listdir("d:/data/"):
-        file_path = '%s%s' % ('d:/data/' , file_name)
+        file_path = '%s%s' % ('d:/data/', file_name)
         with open(file_path) as f:
             content = f.readlines()
         try:
             wd = content[2].split('：')[1].strip()
-        except Exception,e:
-            print file_path , e
+        except Exception, e:
+            print file_path, e
         for line in content[6:]:
-            line = line.strip().replace('[%s]' % wd , wd).split("\t")[2]
+            line = line.strip().replace('[%s]' % wd, wd).split("\t")[2]
             if line in diff:
                 continue
             diff.add(line)
@@ -204,20 +240,22 @@ if __name__ == '__main__':
     t.save_state()
 
     t = TagTrain()
-    t.add_line('越南/ns 电视台/n 报道/v 了/u 许多/a 市民/n 因为/c 赌球/v 而/c >输掉/v 了/u 所有/a 金钱/n 的/u 消息/n ，/w 设有/v 电视机/n 的/u 酒吧/n 在/p 直播/v 比赛/v 时/nt 挤/v 得/u 水泄不通/i 。/w')
+    t.add_line(
+        '越南/ns 电视台/n 报道/v 了/u 许多/a 市民/n 因为/c 赌球/v 而/c >输掉/v 了/u 所有/a 金钱/n 的/u 消息/n ，/w 设有/v 电视机/n 的/u 酒吧/n 在/p 直播/v 比赛/v 时/nt 挤/v 得/u 水泄不通/i 。/w'
+    )
 
     word = re.compile('/[a-z]+\s?')
     diff = set()
     for file_name in os.listdir("data/"):
-        file_path = '%s%s' % ('data/' , file_name)
+        file_path = '%s%s' % ('data/', file_name)
         with open(file_path) as f:
-             content = f.readlines()
-             try:
-                 wd = content[2].split('：')[1].strip()
-             except Exception,e:
-                 print file_path , e
-             for line in content[6:]:
-                line = line.strip().replace('[%s]' % wd , wd).split("\t")[2]
+            content = f.readlines()
+            try:
+                wd = content[2].split('：')[1].strip()
+            except Exception, e:
+                print file_path, e
+            for line in content[6:]:
+                line = line.strip().replace('[%s]' % wd, wd).split("\t")[2]
                 if line in diff:
                     continue
                 diff.add(line)
