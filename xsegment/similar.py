@@ -200,6 +200,9 @@ class CiLin(DTrie):
 
 
 class WordSim(object):
+    """ implmention of HIT IR-Lab Tongyici Cilin(Extended)
+    """
+
     def __init__(self,
                  dictpath=os.path.join(
                      os.path.abspath(os.path.dirname(__file__)),

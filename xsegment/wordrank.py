@@ -7,6 +7,7 @@ from b2 import exceptions2
 from b2 import object2
 from b2 import sort2
 from itertools import combinations
+from collections import defaultdict
 
 
 class TextRank(object):
