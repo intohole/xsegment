@@ -8,6 +8,11 @@ from b2 import str2
 from b2 import exceptions2
 
 
+class ChineseTfidfVectorizer(TfidfVectorizer):
+
+    pass
+
+
 class ChineseTextClassifier(object):
     """ text classifier for chinese
     """

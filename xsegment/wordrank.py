@@ -15,7 +15,7 @@ class TextRank(object):
     """
 
     @staticmethod
-    def extract_key_word(words,
+    def extract_key_word(doc,
                          window_size,
                          topN=None,
                          weight=False,
@@ -23,10 +23,8 @@ class TextRank(object):
                          diff=0.000001,
                          d=0.85):
         """
-        words
-           提取关键的文档 ， 文档格式必须是空格、tab键分割的字符串 或者 分词结果保存的list ，tuple
-        window_size:
-           创建一个词窗口 ， 表示词窗口的大小
+        param:doc:the document which has split word , use space as splitor:basestring
+        param:windows_size:text rank window slide size:int
         topN:
             默认值 False
             参数说明：
@@ -56,7 +54,7 @@ class TextRank(object):
             [('a', 0.23160677474223332), ('c', 0.23160674736544368), ('d', 0.23160674195403314), ('b', 0.19795448492772966)]
         """
         wordId = object2.AutoID()
-        word_windows = ngram2List(words, n=window_size)
+        word_windows = ngram2List(doc, n=window_size)
         for words in word_windows:
             wordId.extend(words)
         graph = GraphV2(len(wordId))
@@ -72,7 +70,3 @@ class TextRank(object):
         topN = len(weights) if topN is None else topN * len(
             weights) if isinstance(topN, float) else topN
         return sort2.sort_map_value(wordsWeightDict, desc=True)[:topN]
-
-
-if __name__ == "__main__":
-    print TextRank.extract_key_word("a b c d d a c a b", 3)

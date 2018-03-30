@@ -21,8 +21,7 @@ class HSegment(object2.Singleton):
     __transition_probability = None
     __states = ['s', 'm', 'b', 'e']
     __split = re.compile('\\s+').split
-
-    _lock = threading.lock()
+    _lock = threading.Lock()
 
     def __init__(self,
                  model=os.path.join(
