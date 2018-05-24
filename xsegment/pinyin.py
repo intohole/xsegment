@@ -1,7 +1,7 @@
 # coding=utf-8
 #!/usr/bin/env python
 
-from b2.ds2 import DTire
+from b2.ds2 import DTrie
 import re
 import sys
 import os
