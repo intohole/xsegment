@@ -28,16 +28,14 @@ class pinyin():
                     self.__dict.add(pin_yin[0], pin_yin[1])
 
     def zh2pinyin(self, words, split_word=' '):
-        if words:
-            if not isinstance(words, unicode):
-                words = words.decode('utf-8')
-            return split_word.join([
-                self.__dict.find('%X' % ord(word),
-                                 '%sx' % word).split()[0][:-1].lower()
-                for word in words
-            ])
-        else:
-            return ''
+        if words is None:
+            return ""
+        if not isinstance(words, unicode):
+            words = words.decode('utf-8')
+        return split_word.join([
+            self.__dict.get('%X' % ord(word)).split()[0][:-1].lower()
+            for word in words
+        ])
 
     def pinyin_segment(self, words, split_word=' '):
         if words:
@@ -51,3 +49,11 @@ class pinyin():
                     result.append('%s' % word.strip())
             return split_word.join(result)
         return ''
+
+
+if __name__ == "__main__":
+    p = pinyin()
+    print p.pinyin_segment('12上帝3aa')  #12 shang di 3aa
+    print p.pinyin_segment('12上帝3aa', '#')  #  'shang#di#3aa
+    print p.zh2pinyin('我爱a')  # wo ai a 不会自动转换不是汉字
+    print p.zh2pinyin('我爱a', '#')  # wo#ai#a
