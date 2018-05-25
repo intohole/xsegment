@@ -32,10 +32,14 @@ class pinyin():
             return ""
         if not isinstance(words, unicode):
             words = words.decode('utf-8')
-        return split_word.join([
-            self.__dict.get('%X' % ord(word)).split()[0][:-1].lower()
-            for word in words
-        ])
+        result = []
+        for word in words:
+            p = self.__dict.get('%X' % ord(word))
+            if p[-2] is None:
+                result.append(word)
+            else:
+                result.append(p[-2])
+        return split_word.join(result)
 
     def pinyin_segment(self, words, split_word=' '):
         if words:
